@@ -80,6 +80,10 @@ class MultiplayerClient {
             };
 
             const tempSocket = io(url, socketOptions);
+            
+            // Set up ALL listeners BEFORE the connection completes
+            // This prevents race conditions
+            this.setupSocketListeners(tempSocket);
 
             const timeout = setTimeout(() => {
                 if (!tempSocket.connected) {
@@ -91,7 +95,15 @@ class MultiplayerClient {
             tempSocket.on('connect', () => {
                 clearTimeout(timeout);
                 this.socket = tempSocket;
-                this.setupSocketListeners();
+                console.log('✅ Socket connected, listeners ready');
+                
+                // Now that listeners are set up, handle auto-registration
+                const savedUsername = localStorage.getItem('connect5_username') || this.username;
+                if (savedUsername) {
+                    console.log('Auto-registering with saved username:', savedUsername);
+                    this.registerPlayer(savedUsername);
+                }
+                
                 resolve();
             });
 
@@ -103,8 +115,8 @@ class MultiplayerClient {
         });
     }
 
-    setupSocketListeners() {
-        if (!this.socket) return;
+    setupSocketListeners(socket) {
+        if (!socket) return;
 
         // Safety timeout: If we are connected but don't get a player list or login prompt within 5 seconds, warn the user.
         setTimeout(() => {
@@ -112,65 +124,53 @@ class MultiplayerClient {
             if (loading && loading.textContent.includes('Connecting')) {
                  loading.textContent = 'Connection successful, but server response is slow...';
             } else if (loading && loading.textContent === 'Loading players...') {
-                 loading.innerHTML = 'Server not responding. <a href="#" onclick="multiplayerClient.connect()">Retry</a>';
+                 loading.innerHTML = 'Server not responding. <a href="#" onclick="window.multiplayerClient.connect()">Retry</a>';
             }
         }, 5000);
-
-        this.socket.on('connect', () => {
-            console.log('✅ Connected to multiplayer server');
-            
-            // If we have a username (from localStorage or recently entered), try to register
-            const savedUsername = localStorage.getItem('connect5_username') || this.username;
-            
-            if (savedUsername) {
-                console.log('Found saved username:', savedUsername);
-                this.registerPlayer(savedUsername);
-            } 
-            // If no username yet, do nothing (user is seeing the modal and will call registerPlayer when they submit)
-        });
         
-        this.socket.on('disconnect', () => {
+        socket.on('disconnect', () => {
             console.log('❌ Disconnected from server');
             this.handleDisconnect();
         });
         
-        this.socket.on('registration_result', (data) => {
+        socket.on('registration_result', (data) => {
+            console.log('📥 Received registration_result:', data);
             this.handleRegistration(data);
         });
         
-        this.socket.on('active_players_update', (players) => {
+        socket.on('active_players_update', (players) => {
             this.updateActivePlayers(players);
         });
         
-        this.socket.on('challenge_received', (data) => {
+        socket.on('challenge_received', (data) => {
             this.showChallengeNotification(data);
         });
         
-        this.socket.on('challenge_result', (data) => {
+        socket.on('challenge_result', (data) => {
             this.handleChallengeResult(data);
         });
         
-        this.socket.on('challenge_declined', (data) => {
+        socket.on('challenge_declined', (data) => {
             this.showMessage(`${data.by} declined your challenge`, 'error');
         });
         
-        this.socket.on('game_started', (data) => {
+        socket.on('game_started', (data) => {
             this.startMultiplayerGame(data);
         });
         
-        this.socket.on('opponent_move', (data) => {
+        socket.on('opponent_move', (data) => {
             this.handleOpponentMove(data);
         });
         
-        this.socket.on('move_result', (data) => {
+        socket.on('move_result', (data) => {
             this.handleMoveResult(data);
         });
         
-        this.socket.on('game_ended', (data) => {
+        socket.on('game_ended', (data) => {
             this.handleGameEnded(data);
         });
         
-        this.socket.on('opponent_disconnected', (data) => {
+        socket.on('opponent_disconnected', (data) => {
             this.showMessage(data.message + '. Waiting for reconnection...', 'warning');
         });
         
