@@ -74,6 +74,17 @@ class Connect5Game {
       return;
     }
 
+    // Check if in multiplayer mode and if it's our turn
+    if (multiplayerClient && multiplayerClient.isMultiplayer) {
+      if (!multiplayerClient.myTurn) {
+        return; // Not our turn in multiplayer
+      }
+      
+      // Send move to server
+      const moveSent = multiplayerClient.makeMove(row, col);
+      if (!moveSent) return;
+    }
+
     // Place piece
     this.board[row][col] = this.currentPlayer;
 
@@ -82,25 +93,28 @@ class Connect5Game {
     const cell = this.boardElement.children[cellIndex];
     cell.classList.add("occupied", this.currentPlayer.toLowerCase());
 
-    // Check for win
-    if (this.checkWin(row, col)) {
-      this.gameActive = false;
-      this.scores[this.currentPlayer]++;
-      this.updateScores();
-      this.showVictoryOverlay();
-      return;
-    }
+    // In local mode only, check for win/draw and switch player
+    if (!multiplayerClient || !multiplayerClient.isMultiplayer) {
+      // Check for win
+      if (this.checkWin(row, col)) {
+        this.gameActive = false;
+        this.scores[this.currentPlayer]++;
+        this.updateScores();
+        this.showVictoryOverlay();
+        return;
+      }
 
-    // Check for draw
-    if (this.checkDraw()) {
-      this.gameActive = false;
-      this.statusMessage.textContent = "It's a draw! Board is full.";
-      return;
-    }
+      // Check for draw
+      if (this.checkDraw()) {
+        this.gameActive = false;
+        this.statusMessage.textContent = "It's a draw! Board is full.";
+        return;
+      }
 
-    // Switch player
-    this.currentPlayer = this.currentPlayer === "X" ? "O" : "X";
-    this.updateStatus();
+      // Switch player
+      this.currentPlayer = this.currentPlayer === "X" ? "O" : "X";
+      this.updateStatus();
+    }
   }
 
   checkWin(row, col) {
@@ -234,6 +248,7 @@ class Connect5Game {
 }
 
 // Initialize game when DOM is loaded
+let game;
 document.addEventListener("DOMContentLoaded", () => {
-  const game = new Connect5Game();
+  game = new Connect5Game();
 });

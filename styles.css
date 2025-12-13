@@ -315,6 +315,11 @@ body {
   grid-template-rows: repeat(25, 24px);
 }
 
+.board[data-size="50"] {
+  grid-template-columns: repeat(50, 16px);
+  grid-template-rows: repeat(50, 16px);
+}
+
 /* Cell */
 .cell {
   background: transparent;
@@ -539,6 +544,11 @@ body {
     grid-template-columns: repeat(25, 22px);
     grid-template-rows: repeat(25, 22px);
   }
+  
+  .board[data-size="50"] {
+    grid-template-columns: repeat(50, 15px);
+    grid-template-rows: repeat(50, 15px);
+  }
 }
 
 @media (max-width: 768px) {
@@ -587,6 +597,11 @@ body {
   .board[data-size="25"] {
     grid-template-columns: repeat(25, 20px);
     grid-template-rows: repeat(25, 20px);
+  }
+
+  .board[data-size="50"] {
+    grid-template-columns: repeat(50, 14px);
+    grid-template-rows: repeat(50, 14px);
   }
 
   .victory-content {

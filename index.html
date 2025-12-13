@@ -7,12 +7,15 @@
     <title>Connect-5 - Premium Gomoku Game</title>
     <link rel="icon" type="image/png" href="Logo.png" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="multiplayer-styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Socket.io Client -->
+    <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
     <div class="container">
@@ -40,13 +43,25 @@
       </header>
 
       <main class="game-container">
-        <div class="controls-panel">
+        <!-- Game Mode Toggle -->
+        <div class="mode-selector">
+          <button class="mode-btn active" id="localModeBtn" onclick="toggleGameMode('local')">
+            🎮 Local Play
+          </button>
+          <button class="mode-btn" id="multiplayerModeBtn" onclick="toggleGameMode('multiplayer')">
+            🌐 Multiplayer
+          </button>
+        </div>
+
+        <!-- Local Game Controls -->
+        <div id="gameControls" class="controls-panel">
           <div class="size-selector">
             <label for="boardSize">Board Size:</label>
             <div class="size-buttons">
               <button class="size-btn active" data-size="15">15×15</button>
               <button class="size-btn" data-size="20">20×20</button>
               <button class="size-btn" data-size="25">25×25</button>
+              <button class="size-btn" data-size="50">50×50</button>
             </div>
           </div>
 
@@ -93,6 +108,52 @@
         <div class="status-message" id="statusMessage">
           Player X starts the game
         </div>
+
+        <!-- Multiplayer Panel -->
+        <div id="multiplayerPanel" class="multiplayer-panel" style="display: none;">
+          <div class="player-stats-card">
+            <h3>Your Stats</h3>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <span class="stat-label">Player:</span>
+                <span class="stat-value" id="playerUsername">-</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Wins:</span>
+                <span class="stat-value" id="playerWins">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Losses:</span>
+                <span class="stat-value" id="playerLosses">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Draws:</span>
+                <span class="stat-value" id="playerDraws">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="board-size-selector-mp">
+            <h3>Select Board Size</h3>
+            <div class="size-buttons">
+              <button class="size-btn-mp active" data-size="15">15×15</button>
+              <button class="size-btn-mp" data-size="20">20×20</button>
+              <button class="size-btn-mp" data-size="25">25×25</button>
+              <button class="size-btn-mp" data-size="50">50×50</button>
+            </div>
+          </div>
+
+          <div class="active-players-card">
+            <h3>Online Players</h3>
+            <div id="activePlayersList" class="players-list">
+              <div class="loading">Loading players...</div>
+            </div>
+          </div>
+
+          <button class="return-btn" onclick="toggleGameMode('local')">
+            ← Return to Local Play
+          </button>
+        </div>
       </main>
 
       <footer class="footer">
@@ -108,6 +169,98 @@
       </div>
     </div>
 
+    <!-- Username Modal -->
+    <div class="modal-overlay" id="usernameModal">
+      <div class="modal-content username-modal">
+        <h2>Enter Your Username</h2>
+        <p class="modal-subtitle">Choose a family-friendly name (3-20 characters)</p>
+        <input type="text" id="usernameInput" placeholder="Your username" maxlength="20" />
+        <div id="usernameError" class="error-message" style="display: none;"></div>
+        <button class="submit-btn" onclick="submitUsername()">
+          Join Multiplayer
+        </button>
+      </div>
+    </div>
+
+    <script src="multiplayer.js"></script>
     <script src="game.js"></script>
+    <script>
+      // Game mode toggling
+      function toggleGameMode(mode) {
+        const localBtn = document.getElementById('localModeBtn');
+        const multiplayerBtn = document.getElementById('multiplayerModeBtn');
+        const gameControls = document.getElementById('gameControls');
+        const multiplayerPanel = document.getElementById('multiplayerPanel');
+        const boardWrapper = document.querySelector('.board-wrapper');
+        const statusMessage = document.getElementById('statusMessage');
+
+        if (mode === 'local') {
+          localBtn.classList.add('active');
+          multiplayerBtn.classList.remove('active');
+          gameControls.style.display = 'grid';
+          multiplayerPanel.style.display = 'none';
+          boardWrapper.style.display = 'flex';
+          statusMessage.style.display = 'block';
+
+          // Reset to local mode
+          if (multiplayerClient) {
+            multiplayerClient.isMultiplayer = false;
+          }
+        } else {
+          localBtn.classList.remove('active');
+          multiplayerBtn.classList.add('active');
+          gameControls.style.display = 'none';
+          multiplayerPanel.style.display = 'block';
+          boardWrapper.style.display = 'none';
+          statusMessage.style.display = 'none';
+
+          // Initialize multiplayer if not already
+          if (!multiplayerClient) {
+            multiplayerClient = new MultiplayerClient(game);
+            multiplayerClient.connect();
+          }
+        }
+      }
+
+      // Submit username
+      function submitUsername() {
+        const input = document.getElementById('usernameInput');
+        const error = document.getElementById('usernameError');
+        const username = input.value.trim();
+
+        if (!username) {
+          error.textContent = 'Please enter a username';
+          error.style.display = 'block';
+          return;
+        }
+
+        if (username.length < 3 || username.length > 20) {
+          error.textContent = 'Username must be 3-20 characters';
+          error.style.display = 'block';
+          return;
+        }
+
+        if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+          error.textContent = 'Only letters, numbers, underscores, and hyphens allowed';
+          error.style.display = 'block';
+          return;
+        }
+
+        error.style.display = 'none';
+        multiplayerClient.registerPlayer(username);
+      }
+
+      // Allow Enter key to submit username
+      document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('usernameInput');
+        if (input) {
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              submitUsername();
+            }
+          });
+        }
+      });
+    </script>
   </body>
 </html>
