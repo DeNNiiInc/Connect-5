@@ -56,9 +56,6 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 ### Local Game Mode
 ![Local Game](screenshots/local-game.png)
 
-### Multiplayer Lobby
-![Multiplayer Lobby](screenshots/multiplayer-lobby.png)
-
 ### Different Board Sizes
 ![Board Sizes](screenshots/board-sizes.png)
 
