@@ -117,25 +117,33 @@ class MultiplayerClient {
             localStorage.setItem('connect5_username', this.username);
             console.log('Username saved to localStorage');
             
-            // Hide username modal
+            // Hide username modal (if visible)
             const modal = document.getElementById('usernameModal');
             if (modal) {
                 modal.classList.remove('active');
             }
             
             // Show multiplayer panel
-            document.getElementById('multiplayerPanel').style.display = 'block';
+            const multiplayerPanel = document.getElementById('multiplayerPanel');
+            if (multiplayerPanel) {
+                multiplayerPanel.style.display = 'block';
+            }
+            
+            // Update player stats display
             document.getElementById('playerUsername').textContent = this.username;
             document.getElementById('playerWins').textContent = data.player.stats.wins;
             document.getElementById('playerLosses').textContent = data.player.stats.losses;
             document.getElementById('playerDraws').textContent = data.player.stats.draws;
             
-            this.showMessage(`Welcome, ${this.username}!`, 'success');
+            this.showMessage(`Welcome back, ${this.username}!`, 'success');
             
             // Request active players
             this.socket.emit('request_active_players');
         } else {
+            // Registration failed - clear saved username and show modal
+            localStorage.removeItem('connect5_username');
             this.showMessage(data.error, 'error');
+            this.showUsernameModal();
         }
     }
     
