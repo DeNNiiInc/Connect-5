@@ -201,17 +201,21 @@ class MultiplayerClient {
             modal.classList.remove('active');
         }
 
-        // Show loading state if connecting
+        // Show loading state
         const loading = document.querySelector('.loading');
-        if (loading && !this.socket) {
-             loading.textContent = 'Connecting to server...';
+        if (loading) {
+            loading.textContent = 'Registering...';
         }
 
         if (!this.socket || !this.socket.connected) {
             console.log('Socket not ready yet, username saved and will be sent on connect.');
+            if (loading) {
+                loading.textContent = 'Connecting to server...';
+            }
             return;
         }
         
+        console.log('Emitting register_player for:', username);
         this.socket.emit('register_player', { username });
     }
     

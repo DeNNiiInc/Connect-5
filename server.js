@@ -36,7 +36,9 @@ io.on('connection', (socket) => {
     
     // Player registration
     socket.on('register_player', async (data) => {
+        console.log('📝 Registration request from', socket.id, 'username:', data.username);
         const result = await gameManager.registerPlayer(socket, data.username);
+        console.log('📝 Registration result:', result);
         socket.emit('registration_result', result);
     });
     
