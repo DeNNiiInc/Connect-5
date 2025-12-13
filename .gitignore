@@ -1,0 +1,23 @@
+# Database configuration with credentials
+db.config.js
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

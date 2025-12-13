@@ -1,15 +1,9 @@
 const mysql = require('mysql2/promise');
 
-// Database configuration
-const dbConfig = {
-    host: 'oceprod.beyondcloud.solutions',
-    user: 'appgconnect5_dbuser',
-    password: 'REqTtHhZCKAlJAnznjLx8ZhOq',
-    database: 'appgconnect5_db',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-};
+// Import database configuration from external file
+// This file (db.config.js) is not committed to git for security
+// Use db.config.example.js as a template
+const dbConfig = require('./db.config.js');
 
 // Create connection pool
 const pool = mysql.createPool(dbConfig);
