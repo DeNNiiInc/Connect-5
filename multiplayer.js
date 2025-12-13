@@ -23,27 +23,29 @@ class MultiplayerClient {
         // Dynamically construct proxy URLs based on current origin
         const targetUrl = window.location.origin;
         const servers = [
-            targetUrl, // Primary (local/current)
-            'http://localhost:3000', // Explicit local backend port (common for dev)
-            `https://corsproxy.io/?${targetUrl}`, // CorsProxy.io
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`, // AllOrigins
-            `https://cors-anywhere.herokuapp.com/${targetUrl}` // Corsair Anywhere (Demo)
+            targetUrl, // Primary (Production/Local)
+            'http://localhost:3000' // Failover for local dev
         ];
 
         let connected = false;
+        const loadingEl = document.querySelector('.loading');
 
         for (const serverUrl of servers) {
             if (connected) break;
             
             try {
+                if (loadingEl) loadingEl.textContent = `Connecting to ${serverUrl}...`;
                 console.log(`Attempting connection to: ${serverUrl}`);
                 await this.tryConnect(serverUrl);
                 connected = true;
                 console.log(`✅ Successfully connected to: ${serverUrl}`);
+                if (loadingEl) loadingEl.textContent = 'Connected! verifying functionality...';
             } catch (error) {
                 console.warn(`❌ Failed to connect to ${serverUrl}:`, error);
             }
         }
+
+
 
         if (!connected) {
             this.showMessage('Failed to connect to any multiplayer server. Please try again later.', 'error');
@@ -95,6 +97,16 @@ class MultiplayerClient {
 
     setupSocketListeners() {
         if (!this.socket) return;
+
+        // Safety timeout: If we are connected but don't get a player list or login prompt within 5 seconds, warn the user.
+        setTimeout(() => {
+            const loading = document.querySelector('.loading');
+            if (loading && loading.textContent.includes('Connecting')) {
+                 loading.textContent = 'Connection successful, but server response is slow...';
+            } else if (loading && loading.textContent === 'Loading players...') {
+                 loading.innerHTML = 'Server not responding. <a href="#" onclick="multiplayerClient.connect()">Retry</a>';
+            }
+        }, 5000);
 
         this.socket.on('connect', () => {
             console.log('✅ Connected to multiplayer server');
