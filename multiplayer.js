@@ -192,7 +192,26 @@ class MultiplayerClient {
     
     // Register player
     registerPlayer(username) {
-        if (!this.socket) return;
+        this.username = username;
+        localStorage.setItem('connect5_username', username);
+        
+        // Hide username modal immediately for better UX
+        const modal = document.getElementById('usernameModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+
+        // Show loading state if connecting
+        const loading = document.querySelector('.loading');
+        if (loading && !this.socket) {
+             loading.textContent = 'Connecting to server...';
+        }
+
+        if (!this.socket || !this.socket.connected) {
+            console.log('Socket not ready yet, username saved and will be sent on connect.');
+            return;
+        }
+        
         this.socket.emit('register_player', { username });
     }
     
