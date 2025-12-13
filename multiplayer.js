@@ -507,4 +507,5 @@ class MultiplayerClient {
 }
 
 // Initialize multiplayer client (will be used by game.js)
-let multiplayerClient = null;
+// Initialize multiplayer client (will be used by game.js)
+window.multiplayerClient = null;

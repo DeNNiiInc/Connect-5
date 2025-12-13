@@ -203,8 +203,8 @@
           statusMessage.style.display = 'block';
 
           // Reset to local mode
-          if (multiplayerClient) {
-            multiplayerClient.isMultiplayer = false;
+          if (window.multiplayerClient) {
+            window.multiplayerClient.isMultiplayer = false;
           }
         } else {
           localBtn.classList.remove('active');
@@ -215,9 +215,13 @@
           statusMessage.style.display = 'none';
 
           // Initialize multiplayer if not already
-          if (!multiplayerClient) {
-            multiplayerClient = new MultiplayerClient(game);
-            multiplayerClient.connect();
+          if (!window.multiplayerClient) {
+            if (!window.game) {
+                console.error("Game instance not found!");
+                return;
+            }
+            window.multiplayerClient = new MultiplayerClient(window.game);
+            window.multiplayerClient.connect();
           }
         }
       }
@@ -247,7 +251,14 @@
         }
 
         error.style.display = 'none';
-        multiplayerClient.registerPlayer(username);
+        
+        if (window.multiplayerClient) {
+            window.multiplayerClient.registerPlayer(username);
+        } else {
+            console.error("Multiplayer client not initialized");
+            error.textContent = "Error: Multiplayer not initialized. Refresh page.";
+            error.style.display = 'block';
+        }
       }
 
       // Change username

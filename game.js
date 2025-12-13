@@ -248,7 +248,8 @@ class Connect5Game {
 }
 
 // Initialize game when DOM is loaded
-let game;
+// Initialize game when DOM is loaded
+window.game = null;
 document.addEventListener("DOMContentLoaded", () => {
-  game = new Connect5Game();
+  window.game = new Connect5Game();
 });
