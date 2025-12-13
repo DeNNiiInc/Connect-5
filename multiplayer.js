@@ -14,11 +14,42 @@ class MultiplayerClient {
     
     
     // Connect to server
-    connect() {
-        // Automatically detect server URL (works for both local and production)
-        const serverUrl = window.location.origin;
-        console.log('Connecting to server:', serverUrl);
-        this.socket = io(serverUrl);
+    async connect() {
+        if (typeof io === 'undefined') {
+            this.showMessage('Socket.io library not loaded. Please check your internet connection.', 'error');
+            return;
+        }
+
+        // Dynamically construct proxy URLs based on current origin
+        const targetUrl = window.location.origin;
+        const servers = [
+            targetUrl, // Primary (local/current)
+            'http://localhost:3000', // Explicit local backend port (common for dev)
+            `https://corsproxy.io/?${targetUrl}`, // CorsProxy.io
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`, // AllOrigins
+            `https://cors-anywhere.herokuapp.com/${targetUrl}` // Corsair Anywhere (Demo)
+        ];
+
+        let connected = false;
+
+        for (const serverUrl of servers) {
+            if (connected) break;
+            
+            try {
+                console.log(`Attempting connection to: ${serverUrl}`);
+                await this.tryConnect(serverUrl);
+                connected = true;
+                console.log(`✅ Successfully connected to: ${serverUrl}`);
+            } catch (error) {
+                console.warn(`❌ Failed to connect to ${serverUrl}:`, error);
+            }
+        }
+
+        if (!connected) {
+            this.showMessage('Failed to connect to any multiplayer server. Please try again later.', 'error');
+            const loading = document.querySelector('.loading');
+            if (loading) loading.textContent = 'Connection failed.';
+        }
         
         // Setup board size selector buttons
         document.querySelectorAll('.size-btn-mp').forEach(btn => {
@@ -28,7 +59,43 @@ class MultiplayerClient {
                 this.selectedBoardSize = parseInt(e.target.dataset.size);
             });
         });
-        
+    }
+
+    tryConnect(url) {
+        return new Promise((resolve, reject) => {
+            const socketOptions = {
+                reconnection: false, // We handle reconnection manually for failover
+                timeout: 5000,
+                transports: ['websocket', 'polling']
+            };
+
+            const tempSocket = io(url, socketOptions);
+
+            const timeout = setTimeout(() => {
+                if (!tempSocket.connected) {
+                    tempSocket.close();
+                    reject(new Error('Connection timed out'));
+                }
+            }, 5000);
+
+            tempSocket.on('connect', () => {
+                clearTimeout(timeout);
+                this.socket = tempSocket;
+                this.setupSocketListeners();
+                resolve();
+            });
+
+            tempSocket.on('connect_error', (err) => {
+                clearTimeout(timeout);
+                tempSocket.close();
+                reject(err);
+            });
+        });
+    }
+
+    setupSocketListeners() {
+        if (!this.socket) return;
+
         this.socket.on('connect', () => {
             console.log('✅ Connected to multiplayer server');
             
