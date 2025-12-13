@@ -2,9 +2,9 @@
 
 <div align="center">
 
-![Connect-5 Logo](Logo.png)
-
 **Premium Real-Time Multiplayer Gomoku Game**
+
+[![Play Online](https://img.shields.io/badge/🎮_Play_Online-connect5.beyondcloud.technology-9333ea?style=for-the-badge)](https://connect5.beyondcloud.technology/)
 
 A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game with real-time multiplayer support, built with modern web technologies.
 
@@ -13,7 +13,7 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)](https://www.mysql.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Multiplayer](#multiplayer) • [Tech Stack](#tech-stack)
+[Play Now](https://connect5.beyondcloud.technology/) • [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Multiplayer](#multiplayer) • [Tech Stack](#tech-stack)
 
 </div>
 
