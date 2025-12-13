@@ -20,6 +20,14 @@ class MultiplayerClient {
             return;
         }
 
+        // Show username modal immediately if not saved
+        const savedUsername = localStorage.getItem('connect5_username');
+        if (!savedUsername) {
+            this.showUsernameModal();
+        } else {
+            this.username = savedUsername; // Pre-load username
+        }
+
         // Dynamically construct proxy URLs based on current origin
         const targetUrl = window.location.origin;
         const servers = [
@@ -111,16 +119,14 @@ class MultiplayerClient {
         this.socket.on('connect', () => {
             console.log('✅ Connected to multiplayer server');
             
-            // Check if username is saved in localStorage
-            const savedUsername = localStorage.getItem('connect5_username');
+            // If we have a username (from localStorage or recently entered), try to register
+            const savedUsername = localStorage.getItem('connect5_username') || this.username;
+            
             if (savedUsername) {
                 console.log('Found saved username:', savedUsername);
-                // Auto-login with saved username
                 this.registerPlayer(savedUsername);
-            } else {
-                // Show username modal if no saved username
-                this.showUsernameModal();
-            }
+            } 
+            // If no username yet, do nothing (user is seeing the modal and will call registerPlayer when they submit)
         });
         
         this.socket.on('disconnect', () => {
