@@ -27,7 +27,17 @@ class MultiplayerClient {
         
         this.socket.on('connect', () => {
             console.log('✅ Connected to multiplayer server');
-            this.showUsernameModal();
+            
+            // Check if username is saved in localStorage
+            const savedUsername = localStorage.getItem('connect5_username');
+            if (savedUsername) {
+                console.log('Found saved username:', savedUsername);
+                // Auto-login with saved username
+                this.registerPlayer(savedUsername);
+            } else {
+                // Show username modal if no saved username
+                this.showUsernameModal();
+            }
         });
         
         this.socket.on('disconnect', () => {
@@ -102,6 +112,10 @@ class MultiplayerClient {
         if (data.success) {
             this.playerId = data.player.id;
             this.username = data.player.username;
+            
+            // Save username to localStorage for auto-login
+            localStorage.setItem('connect5_username', this.username);
+            console.log('Username saved to localStorage');
             
             // Hide username modal
             const modal = document.getElementById('usernameModal');

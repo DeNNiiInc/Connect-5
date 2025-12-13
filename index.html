@@ -250,6 +250,20 @@
         multiplayerClient.registerPlayer(username);
       }
 
+      // Change username
+      function changeUsername() {
+        // Clear saved username from localStorage
+        localStorage.removeItem('connect5_username');
+        
+        // Show username modal
+        const modal = document.getElementById('usernameModal');
+        if (modal) {
+          modal.classList.add('active');
+          // Clear the input field
+          document.getElementById('usernameInput').value = '';
+        }
+      }
+
       // Allow Enter key to submit username
       document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('usernameInput');
