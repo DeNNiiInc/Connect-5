@@ -6,7 +6,7 @@
 
 [![Play Online](https://img.shields.io/badge/🎮_Play_Online-connect5.beyondcloud.technology-9333ea?style=for-the-badge)](https://connect5.beyondcloud.technology/)
 
-A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game with real-time multiplayer support, built with modern web technologies.
+A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game with real-time multiplayer support, built with modern web technologies. :)
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![Socket.io](https://img.shields.io/badge/Socket.io-4.0+-blue.svg)](https://socket.io/)
