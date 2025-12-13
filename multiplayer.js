@@ -12,9 +12,13 @@ class MultiplayerClient {
         this.selectedBoardSize = 15; // Default board size for multiplayer
     }
     
+    
     // Connect to server
     connect() {
-        this.socket = io('http://localhost:3000');
+        // Automatically detect server URL (works for both local and production)
+        const serverUrl = window.location.origin;
+        console.log('Connecting to server:', serverUrl);
+        this.socket = io(serverUrl);
         
         // Setup board size selector buttons
         document.querySelectorAll('.size-btn-mp').forEach(btn => {
