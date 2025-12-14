@@ -21,7 +21,7 @@ class MultiplayerClient {
         }
 
         // Show username modal immediately if not saved
-        const savedUsername = localStorage.getItem('connect5_username');
+        const savedUsername = await window.gameStorage.getItem('connect5_username');
         if (!savedUsername) {
             this.showUsernameModal();
         } else {
@@ -92,13 +92,13 @@ class MultiplayerClient {
                 }
             }, 5000);
 
-            tempSocket.on('connect', () => {
+            tempSocket.on('connect', async () => {
                 clearTimeout(timeout);
                 this.socket = tempSocket;
                 console.log('✅ Socket connected, listeners ready');
                 
                 // Now that listeners are set up, handle auto-registration
-                const savedUsername = localStorage.getItem('connect5_username') || this.username;
+                const savedUsername = await window.gameStorage.getItem('connect5_username') || this.username;
                 if (savedUsername) {
                     console.log('Auto-registering with saved username:', savedUsername);
                     this.registerPlayer(savedUsername);
@@ -191,9 +191,9 @@ class MultiplayerClient {
     }
     
     // Register player
-    registerPlayer(username) {
+    async registerPlayer(username) {
         this.username = username;
-        localStorage.setItem('connect5_username', username);
+        await window.gameStorage.setItem('connect5_username', username);
         
         // Hide username modal immediately for better UX
         const modal = document.getElementById('usernameModal');
@@ -220,14 +220,12 @@ class MultiplayerClient {
     }
     
     // Handle registration response
-    handleRegistration(data) {
+    async handleRegistration(data) {
         if (data.success) {
             this.playerId = data.player.id;
             this.username = data.player.username;
-            
-            // Save username to localStorage for auto-login
-            localStorage.setItem('connect5_username', this.username);
-            console.log('Username saved to localStorage');
+            await window.gameStorage.setItem('connect5_username', this.username);
+            console.log('Username saved to IndexedDB');
             
             // Hide username modal (if visible)
             const modal = document.getElementById('usernameModal');
