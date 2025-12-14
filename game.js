@@ -248,8 +248,14 @@ class Connect5Game {
 }
 
 // Initialize game when DOM is loaded
-// Initialize game when DOM is loaded
 window.game = null;
 document.addEventListener("DOMContentLoaded", () => {
   window.game = new Connect5Game();
+  
+  // Enable multiplayer button now that game is ready
+  const multiplayerBtn = document.getElementById('multiplayerModeBtn');
+  if (multiplayerBtn) {
+    multiplayerBtn.disabled = false;
+    console.log('✅ Game initialized, multiplayer button enabled');
+  }
 });

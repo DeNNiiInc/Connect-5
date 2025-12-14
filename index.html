@@ -48,7 +48,7 @@
           <button class="mode-btn active" id="localModeBtn" onclick="toggleGameMode('local')">
             🎮 Local Play
           </button>
-          <button class="mode-btn" id="multiplayerModeBtn" onclick="toggleGameMode('multiplayer')">
+          <button class="mode-btn" id="multiplayerModeBtn" onclick="toggleGameMode('multiplayer')" disabled>
             🌐 Multiplayer
           </button>
         </div>
@@ -217,7 +217,16 @@
           // Initialize multiplayer if not already
           if (!window.multiplayerClient) {
             if (!window.game) {
-                console.error("Game instance not found!");
+                console.log('⏳ Waiting for game to initialize...');
+                // Poll for game to be ready
+                const checkGame = setInterval(() => {
+                    if (window.game) {
+                        clearInterval(checkGame);
+                        console.log('✅ Game ready, initializing multiplayer...');
+                        window.multiplayerClient = new MultiplayerClient(window.game);
+                        window.multiplayerClient.connect();
+                    }
+                }, 100); // Check every 100ms
                 return;
             }
             window.multiplayerClient = new MultiplayerClient(window.game);
