@@ -156,6 +156,32 @@
         </div>
       </main>
 
+      <!-- Database Status Bar -->
+      <div class="db-status-bar" id="dbStatusBar">
+        <div class="db-status-item">
+          <span class="db-status-label">SQL Connection:</span>
+          <span class="db-status-indicator" id="dbConnection">
+            <span class="status-dot"></span>
+            <span class="status-text">Checking...</span>
+          </span>
+        </div>
+        <div class="db-status-item">
+          <span class="db-status-label">Latency:</span>
+          <span class="db-status-value" id="dbLatency">-- ms</span>
+        </div>
+        <div class="db-status-item">
+          <span class="db-status-label">Write Capability:</span>
+          <span class="db-status-indicator" id="dbWrite">
+            <span class="status-dot"></span>
+            <span class="status-text">Checking...</span>
+          </span>
+        </div>
+        <div class="db-status-item db-status-timestamp">
+          <span class="db-status-label">Last Check:</span>
+          <span class="db-status-value" id="dbTimestamp">--</span>
+        </div>
+      </div>
+
       <footer class="footer">
         <p>© 2025 Beyond Cloud Technology. All rights reserved.</p>
       </footer>
@@ -183,6 +209,7 @@
     </div>
 
     <script src="storage.js"></script>
+    <script src="db-status.js"></script>
     <script src="multiplayer.js"></script>
     <script src="game.js"></script>
     <script>

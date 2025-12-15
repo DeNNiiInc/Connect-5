@@ -27,6 +27,75 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Database health check endpoint
+app.get('/api/db-status', async (req, res) => {
+    const startTime = Date.now();
+    let status = {
+        connected: false,
+        latency: 0,
+        writeCapable: false,
+        timestamp: new Date().toISOString(),
+        error: null
+    };
+
+    try {
+        // Test connection with a simple query
+        const [result] = await db.pool.query('SELECT 1 as test');
+        const latency = Date.now() - startTime;
+        
+        if (result && result[0].test === 1) {
+            status.connected = true;
+            status.latency = latency;
+
+            // Test write capability
+            try {
+                const testTableName = '_health_check_test';
+                
+                // Create test table if it doesn't exist
+                await db.pool.query(`
+                    CREATE TABLE IF NOT EXISTS ${testTableName} (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        test_value VARCHAR(50),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                `);
+                
+                // Try to insert a test record
+                const testValue = `test_${Date.now()}`;
+                await db.pool.query(
+                    `INSERT INTO ${testTableName} (test_value) VALUES (?)`,
+                    [testValue]
+                );
+                
+                // Clean up old test records (keep only last 10)
+                await db.pool.query(`
+                    DELETE FROM ${testTableName} 
+                    WHERE id NOT IN (
+                        SELECT id FROM (
+                            SELECT id FROM ${testTableName} 
+                            ORDER BY created_at DESC 
+                            LIMIT 10
+                        ) AS keep_records
+                    )
+                `);
+                
+                status.writeCapable = true;
+            } catch (writeError) {
+                console.error('Write test failed:', writeError.message);
+                status.writeCapable = false;
+                status.error = `Write test failed: ${writeError.message}`;
+            }
+        }
+    } catch (error) {
+        console.error('Database health check failed:', error.message);
+        status.connected = false;
+        status.latency = Date.now() - startTime;
+        status.error = error.message;
+    }
+
+    res.json(status);
+});
+
 // Initialize game manager
 const gameManager = new GameManager(io, db);
 
