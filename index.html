@@ -180,6 +180,53 @@
           <span class="db-status-label">Last Check:</span>
           <span class="db-status-value" id="dbTimestamp">--</span>
         </div>
+        <div class="db-status-item">
+          <button class="db-retry-btn" id="dbRetryBtn" onclick="window.dbStatusMonitor && window.dbStatusMonitor.retryConnection()" title="Retry SQL Connection">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+            Retry
+          </button>
+        </div>
+      </div>
+      
+      <!-- Database Status Details (for testing phase) -->
+      <div class="db-status-details" id="dbStatusDetails" style="display: none;">
+        <div class="db-details-header">
+          <span class="db-details-title">🔍 SQL Connection Details</span>
+          <button class="db-details-close" onclick="document.getElementById('dbStatusDetails').style.display='none'">×</button>
+        </div>
+        <div class="db-details-content" id="dbDetailsContent">
+          <div class="db-detail-item">
+            <span class="db-detail-label">Status:</span>
+            <span class="db-detail-value" id="detailStatus">--</span>
+          </div>
+          <div class="db-detail-item">
+            <span class="db-detail-label">Host:</span>
+            <span class="db-detail-value" id="detailHost">--</span>
+          </div>
+          <div class="db-detail-item">
+            <span class="db-detail-label">Database:</span>
+            <span class="db-detail-value" id="detailDatabase">--</span>
+          </div>
+          <div class="db-detail-item">
+            <span class="db-detail-label">Error:</span>
+            <span class="db-detail-value db-detail-error" id="detailError">None</span>
+          </div>
+          <div class="db-detail-logs" id="detailLogs"></div>
+        </div>
+      </div>
+      
+      <!-- SQL Error Display (Testing Phase) -->
+      <div class="sql-error-banner" id="sqlErrorBanner" style="display: none;">
+        <div class="sql-error-header">
+          <span class="sql-error-icon">⚠️</span>
+          <span class="sql-error-title">SQL Connection Error</span>
+        </div>
+        <div class="sql-error-content">
+          <div class="sql-error-message" id="sqlErrorMessage">No errors</div>
+          <div class="sql-error-details" id="sqlErrorDetails"></div>
+        </div>
       </div>
 
       <footer class="footer">

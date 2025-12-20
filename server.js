@@ -27,18 +27,28 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Database health check endpoint
+// Database health check endpoint with detailed diagnostics
 app.get('/api/db-status', async (req, res) => {
     const startTime = Date.now();
+    const dbConfig = require('./db.config.js');
+    
     let status = {
         connected: false,
         latency: 0,
         writeCapable: false,
         timestamp: new Date().toISOString(),
-        error: null
+        error: null,
+        // Additional diagnostic info for testing phase
+        host: dbConfig.host || 'unknown',
+        database: dbConfig.database || 'unknown',
+        user: dbConfig.user || 'unknown',
+        connectionLimit: dbConfig.connectionLimit || 'unknown',
+        poolStats: null
     };
 
     try {
+        console.log(`[DB-STATUS] Testing connection to ${status.host}/${status.database}...`);
+        
         // Test connection with a simple query
         const [result] = await db.pool.query('SELECT 1 as test');
         const latency = Date.now() - startTime;
@@ -46,9 +56,23 @@ app.get('/api/db-status', async (req, res) => {
         if (result && result[0].test === 1) {
             status.connected = true;
             status.latency = latency;
+            console.log(`[DB-STATUS] ✅ Connection successful (${latency}ms)`);
+
+            // Get pool statistics
+            try {
+                status.poolStats = {
+                    totalConnections: db.pool.pool._allConnections.length,
+                    freeConnections: db.pool.pool._freeConnections.length,
+                    queuedRequests: db.pool.pool._connectionQueue.length
+                };
+                console.log(`[DB-STATUS] Pool stats:`, status.poolStats);
+            } catch (poolError) {
+                console.log(`[DB-STATUS] Could not retrieve pool stats:`, poolError.message);
+            }
 
             // Test write capability
             try {
+                console.log(`[DB-STATUS] Testing write capability...`);
                 const testTableName = '_health_check_test';
                 
                 // Create test table if it doesn't exist
@@ -80,17 +104,34 @@ app.get('/api/db-status', async (req, res) => {
                 `);
                 
                 status.writeCapable = true;
+                console.log(`[DB-STATUS] ✅ Write test successful`);
             } catch (writeError) {
-                console.error('Write test failed:', writeError.message);
+                console.error(`[DB-STATUS] ❌ Write test failed:`, writeError.message);
                 status.writeCapable = false;
                 status.error = `Write test failed: ${writeError.message}`;
             }
         }
     } catch (error) {
-        console.error('Database health check failed:', error.message);
+        console.error(`[DB-STATUS] ❌ Connection failed:`, error.message);
+        console.error(`[DB-STATUS] Error code:`, error.code);
+        console.error(`[DB-STATUS] Error errno:`, error.errno);
+        
         status.connected = false;
         status.latency = Date.now() - startTime;
-        status.error = error.message;
+        
+        // Provide more detailed error messages
+        let errorMessage = error.message;
+        if (error.code === 'ECONNREFUSED') {
+            errorMessage = `Connection refused to ${status.host}. Is MySQL running?`;
+        } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+            errorMessage = `Access denied for user '${status.user}'. Check credentials.`;
+        } else if (error.code === 'ER_BAD_DB_ERROR') {
+            errorMessage = `Database '${status.database}' does not exist.`;
+        } else if (error.code === 'ENOTFOUND') {
+            errorMessage = `Host '${status.host}' not found. Check hostname.`;
+        }
+        
+        status.error = errorMessage;
     }
 
     res.json(status);
