@@ -72,6 +72,11 @@
                 <span class="player-marker" id="currentPlayer">X</span>
               </div>
             </div>
+            
+            <div class="status-message" id="statusMessage">
+              Player X starts the game
+            </div>
+
             <div class="score-display">
               <div class="score-item">
                 <span class="score-label">Player X</span>
@@ -103,10 +108,6 @@
 
         <div class="board-wrapper">
           <div class="board" id="gameBoard"></div>
-        </div>
-
-        <div class="status-message" id="statusMessage">
-          Player X starts the game
         </div>
 
         <!-- Multiplayer Panel -->
@@ -267,7 +268,7 @@
         const gameControls = document.getElementById('gameControls');
         const multiplayerPanel = document.getElementById('multiplayerPanel');
         const boardWrapper = document.querySelector('.board-wrapper');
-        const statusMessage = document.getElementById('statusMessage');
+        // statusMessage is now inside gameControls, so we don't need to toggle it separately
 
         if (mode === 'local') {
           localBtn.classList.add('active');
@@ -275,7 +276,6 @@
           gameControls.style.display = 'grid';
           multiplayerPanel.style.display = 'none';
           boardWrapper.style.display = 'flex';
-          statusMessage.style.display = 'block';
 
           // Reset to local mode
           if (window.multiplayerClient) {
@@ -293,7 +293,6 @@
           gameControls.style.display = 'none';
           multiplayerPanel.style.display = 'block';
           boardWrapper.style.display = 'none';
-          statusMessage.style.display = 'none';
 
           // Initialize multiplayer if not already
           if (!window.multiplayerClient) {
