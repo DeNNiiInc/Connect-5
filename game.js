@@ -67,6 +67,9 @@ class Connect5Game {
     }
 
     this.updateStatus();
+    
+    // Set initial board class
+    this.boardElement.classList.add(`turn-${this.currentPlayer.toLowerCase()}`);
   }
 
   handleCellClick(row, col) {
@@ -212,6 +215,12 @@ class Connect5Game {
   updateStatus() {
     this.statusMessage.textContent = `Player ${this.currentPlayer}'s turn`;
     this.currentPlayerDisplay.textContent = this.currentPlayer;
+
+    // Update board class for ghost piece
+    if (this.boardElement) {
+        this.boardElement.classList.remove('turn-x', 'turn-o');
+        this.boardElement.classList.add(`turn-${this.currentPlayer.toLowerCase()}`);
+    }
 
     // Update the player display style
     const playerDisplay = document.querySelector(".player-display");

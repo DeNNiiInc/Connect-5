@@ -742,6 +742,49 @@ body {
   border-top: 1px solid var(--border-light);
 }
 
+/* Ghost Piece Effect */
+.game-board.turn-x .cell:not(.occupied):hover::after {
+  content: "X";
+  color: hsla(270, 70%, 60%, 0.4);
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.game-board.turn-o .cell:not(.occupied):hover::after {
+  content: "O";
+  color: hsla(195, 70%, 55%, 0.4);
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Board Glow aligned with turn */
+.game-board.turn-x {
+  border-color: hsla(270, 70%, 60%, 0.3);
+  box-shadow: 0 0 30px hsla(270, 70%, 60%, 0.1);
+}
+
+.game-board.turn-o {
+  border-color: hsla(195, 70%, 55%, 0.3);
+  box-shadow: 0 0 30px hsla(195, 70%, 55%, 0.1);
+}
+
+/* Responsive Cell Sizes */
+.game-board[data-size="15"] .cell { width: 30px; height: 30px; font-size: 1.5rem; }
+.game-board[data-size="20"] .cell { width: 25px; height: 25px; font-size: 1.2rem; }
+.game-board[data-size="25"] .cell { width: 20px; height: 20px; font-size: 0.9rem; }
+.game-board[data-size="50"] .cell { width: 12px; height: 12px; font-size: 0.6rem; }
+.game-board[data-size="50"] .cell::after { font-size: 0.6rem !important; } /* Adjust ghost size for tiny cells */
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .board[data-size="25"] {
