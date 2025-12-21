@@ -3,7 +3,7 @@ const http = require('http');
 const socketIO = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const { initializeDatabase, db } = require('./database');
+const { initializeDatabase, db, supabase } = require('./database');
 const GameManager = require('./gameManager');
 
 const app = express();
@@ -39,96 +39,74 @@ app.get('/api/db-status', async (req, res) => {
         timestamp: new Date().toISOString(),
         error: null,
         // Additional diagnostic info for testing phase
-        host: dbConfig.host || 'unknown',
-        database: dbConfig.database || 'unknown',
-        user: dbConfig.user || 'unknown',
-        connectionLimit: dbConfig.connectionLimit || 'unknown',
-        poolStats: null
+        supabaseUrl: dbConfig.supabaseUrl || 'unknown',
+        database: 'Supabase PostgreSQL',
+        connectionType: 'Supabase Client'
     };
 
     try {
-        console.log(`[DB-STATUS] Testing connection to ${status.host}/${status.database}...`);
+        console.log(`[DB-STATUS] Testing Supabase connection to ${status.supabaseUrl}...`);
         
         // Test connection with a simple query
-        const [result] = await db.pool.query('SELECT 1 as test');
+        const { data, error } = await supabase
+            .from('players')
+            .select('id')
+            .limit(1);
+        
         const latency = Date.now() - startTime;
         
-        if (result && result[0].test === 1) {
+        if (!error || error.code === 'PGRST116') { // PGRST116 = no rows found (table exists but empty)
             status.connected = true;
             status.latency = latency;
             console.log(`[DB-STATUS] ✅ Connection successful (${latency}ms)`);
 
-            // Get pool statistics
-            try {
-                status.poolStats = {
-                    totalConnections: db.pool.pool._allConnections.length,
-                    freeConnections: db.pool.pool._freeConnections.length,
-                    queuedRequests: db.pool.pool._connectionQueue.length
-                };
-                console.log(`[DB-STATUS] Pool stats:`, status.poolStats);
-            } catch (poolError) {
-                console.log(`[DB-STATUS] Could not retrieve pool stats:`, poolError.message);
-            }
-
             // Test write capability
             try {
                 console.log(`[DB-STATUS] Testing write capability...`);
-                const testTableName = '_health_check_test';
-                
-                // Create test table if it doesn't exist
-                await db.pool.query(`
-                    CREATE TABLE IF NOT EXISTS ${testTableName} (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        test_value VARCHAR(50),
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                `);
                 
                 // Try to insert a test record
-                const testValue = `test_${Date.now()}`;
-                await db.pool.query(
-                    `INSERT INTO ${testTableName} (test_value) VALUES (?)`,
-                    [testValue]
-                );
+                const testUsername = `_test_${Date.now()}`;
+                const { data: insertData, error: insertError } = await supabase
+                    .from('players')
+                    .insert([{ username: testUsername }])
+                    .select('id')
+                    .single();
                 
-                // Clean up old test records (keep only last 10)
-                await db.pool.query(`
-                    DELETE FROM ${testTableName} 
-                    WHERE id NOT IN (
-                        SELECT id FROM (
-                            SELECT id FROM ${testTableName} 
-                            ORDER BY created_at DESC 
-                            LIMIT 10
-                        ) AS keep_records
-                    )
-                `);
-                
-                status.writeCapable = true;
-                console.log(`[DB-STATUS] ✅ Write test successful`);
+                if (!insertError && insertData) {
+                    // Clean up test record
+                    await supabase
+                        .from('players')
+                        .delete()
+                        .eq('id', insertData.id);
+                    
+                    status.writeCapable = true;
+                    console.log(`[DB-STATUS] ✅ Write test successful`);
+                } else {
+                    throw insertError;
+                }
             } catch (writeError) {
                 console.error(`[DB-STATUS] ❌ Write test failed:`, writeError.message);
                 status.writeCapable = false;
                 status.error = `Write test failed: ${writeError.message}`;
             }
+        } else {
+            throw error;
         }
     } catch (error) {
         console.error(`[DB-STATUS] ❌ Connection failed:`, error.message);
-        console.error(`[DB-STATUS] Error code:`, error.code);
-        console.error(`[DB-STATUS] Error errno:`, error.errno);
+        console.error(`[DB-STATUS] Error details:`, error);
         
         status.connected = false;
         status.latency = Date.now() - startTime;
         
         // Provide more detailed error messages
         let errorMessage = error.message;
-        if (error.code === 'ECONNREFUSED') {
-            errorMessage = `Connection refused to ${status.host}. Is MySQL running?`;
-        } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
-            errorMessage = `Access denied for user '${status.user}'. Check credentials.`;
-        } else if (error.code === 'ER_BAD_DB_ERROR') {
-            errorMessage = `Database '${status.database}' does not exist.`;
-        } else if (error.code === 'ENOTFOUND') {
-            errorMessage = `Host '${status.host}' not found. Check hostname.`;
+        if (error.code === '42P01') {
+            errorMessage = `Table 'players' does not exist. Please run the SQL schema in Supabase SQL Editor.`;
+        } else if (error.message && error.message.includes('Invalid API key')) {
+            errorMessage = `Invalid Supabase API key. Check your db.config.js file.`;
+        } else if (error.message && error.message.includes('fetch')) {
+            errorMessage = `Cannot reach Supabase. Check your supabaseUrl in db.config.js.`;
         }
         
         status.error = errorMessage;
