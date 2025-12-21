@@ -243,6 +243,13 @@ class Connect5Game {
     this.currentPlayer = "X";
     this.gameActive = true;
     this.hideVictoryOverlay();
+    
+    // Reset turn label to default
+    const turnLabel = document.getElementById('turnLabel');
+    if (turnLabel) {
+      turnLabel.textContent = 'Current Turn:';
+    }
+    
     this.initializeBoard();
   }
 }

@@ -372,8 +372,9 @@ class MultiplayerClient {
         
         // Update current player display to show "YOU ARE X/O"
         const currentPlayerDisplay = document.getElementById('currentPlayer');
+        const turnLabel = document.getElementById('turnLabel');
         currentPlayerDisplay.textContent = this.mySymbol;
-        currentPlayerDisplay.parentElement.previousElementSibling.textContent = `You are:`;
+        turnLabel.textContent = `You are:`;
         
         // Update player display colors based on symbol
         const playerDisplay = document.querySelector('.player-display');

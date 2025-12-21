@@ -67,7 +67,7 @@
 
           <div class="game-info">
             <div class="turn-indicator">
-              <span class="label">Current Turn:</span>
+              <span class="label" id="turnLabel">Current Turn:</span>
               <div class="player-display">
                 <span class="player-marker" id="currentPlayer">X</span>
               </div>
@@ -280,6 +280,12 @@
           // Reset to local mode
           if (window.multiplayerClient) {
             window.multiplayerClient.isMultiplayer = false;
+          }
+          
+          // Reset turn label to default
+          const turnLabel = document.getElementById('turnLabel');
+          if (turnLabel) {
+            turnLabel.textContent = 'Current Turn:';
           }
         } else {
           localBtn.classList.remove('active');
