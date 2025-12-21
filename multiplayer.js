@@ -357,7 +357,7 @@ class MultiplayerClient {
         document.getElementById('multiplayerPanel').style.display = 'none';
         document.getElementById('gameControls').style.display = 'grid';
         document.querySelector('.board-wrapper').style.display = 'flex';
-        // status container is part of gameControls now
+        // Status bar is part of gameControls
         
         // Set board size
         document.querySelectorAll('.size-btn').forEach(btn => {
@@ -370,32 +370,40 @@ class MultiplayerClient {
         this.game.gameActive = true;
         this.game.initializeBoard();
         
-        // Update current player display to show "YOU ARE X/O"
-        const currentPlayerDisplay = document.getElementById('currentPlayer');
-        const turnLabel = document.getElementById('turnLabel');
-        currentPlayerDisplay.textContent = this.mySymbol;
-        turnLabel.textContent = `You are:`;
+        // Update player identity display (Right Side)
+        const identitySection = document.getElementById('playerIdentitySection');
+        const identityMarker = document.getElementById('playerIdentity');
         
-        // Update player display colors based on symbol
-        const playerDisplay = document.querySelector('.player-display');
-        if (this.mySymbol === 'O') {
-            playerDisplay.style.borderColor = 'hsl(195, 70%, 55%)';
-            currentPlayerDisplay.style.color = 'hsl(195, 70%, 55%)';
-        } else {
-            playerDisplay.style.borderColor = 'hsl(270, 70%, 60%)';
-            currentPlayerDisplay.style.color = 'hsl(270, 70%, 60%)';
+        if (identitySection && identityMarker) {
+            identitySection.style.display = 'flex';
+            identityMarker.textContent = this.mySymbol;
+            
+            // Set color for identity marker
+            if (this.mySymbol === 'O') {
+                identityMarker.style.color = 'hsl(195, 70%, 55%)';
+                identityMarker.parentElement.style.borderColor = 'hsl(195, 70%, 55%)';
+            } else {
+                identityMarker.style.color = 'hsl(270, 70%, 60%)';
+                identityMarker.parentElement.style.borderColor = 'hsl(270, 70%, 60%)';
+            }
         }
         
-        // Update status
-        const statusText = document.getElementById('statusMessage'); // This is the status-text element
-        const statusContainer = statusText.parentElement; // This is the status-container element
+        // Ensure Turn label is correct (Left Side)
+        const turnLabel = document.getElementById('turnLabel');
+        if (turnLabel) turnLabel.textContent = 'Current Turn:';
+
+        // Set initial color for Current Turn display (will be updated by game.js but good to init)
+        const currentPlayerDisplay = document.getElementById('currentPlayer');
+        
+        // Update status text (Left Side generic message)
+        const statusMessage = document.getElementById('statusMessage');
 
         if (this.myTurn) {
-            statusText.textContent = `🎮 VS ${this.opponent} | YOUR TURN - You're playing as ${this.mySymbol}`;
-            statusContainer.className = 'status-container success';
+            statusMessage.textContent = `VS ${this.opponent} | YOUR TURN`;
+            statusMessage.className = 'status-text-small success';
         } else {
-            statusText.textContent = `🎮 VS ${this.opponent} | Waiting for ${this.opponent} to move - You're playing as ${this.mySymbol}`;
-            statusContainer.className = 'status-container info';
+            statusMessage.textContent = `VS ${this.opponent} | Waiting for opponent`;
+            statusMessage.className = 'status-text-small info';
         }
         
         console.log(`✅ Game started! You are ${this.mySymbol}, ${this.myTurn ? 'your turn' : 'waiting'}`);
@@ -420,8 +428,11 @@ class MultiplayerClient {
             this.myTurn = false;
             
             if (!data.gameOver) {
-                const status = document.getElementById('statusMessage');
-                status.textContent = `Playing against ${this.opponent} - Waiting for opponent...`;
+                const statusMessage = document.getElementById('statusMessage');
+                if (statusMessage) {
+                    statusMessage.textContent = `Playing against ${this.opponent} - Waiting for opponent...`;
+                    statusMessage.className = 'status-text-small info';
+                }
             }
         } else {
             this.showMessage(data.error, 'error');
@@ -432,6 +443,13 @@ class MultiplayerClient {
     handleOpponentMove(data) {
         // Place opponent's piece on board
         this.game.currentPlayer = data.symbol;
+        
+        // Update turn indicator immediately to show X or O
+        const currentPlayerDisplay = document.getElementById('currentPlayer');
+        if (currentPlayerDisplay) {
+            currentPlayerDisplay.textContent = data.symbol;
+        }
+
         const cellIndex = data.row * this.game.boardSize + data.col;
         const cell = this.game.boardElement.children[cellIndex];
         
@@ -444,8 +462,11 @@ class MultiplayerClient {
         this.myTurn = true;
         this.game.currentPlayer = this.mySymbol;
         
-        const status = document.getElementById('statusMessage');
-        status.textContent = `Playing against ${this.opponent} - Your turn (${this.mySymbol})`;
+        const statusMessage = document.getElementById('statusMessage');
+        if (statusMessage) {
+             statusMessage.textContent = `Playing against ${this.opponent} - Your turn`;
+             statusMessage.className = 'status-text-small success';
+        }
     }
     
     // Handle game ended
@@ -497,7 +518,12 @@ class MultiplayerClient {
         this.isMultiplayer = false;
         this.currentGameId = null;
         document.getElementById('multiplayerPanel').style.display = 'block';
-        document.getElementById('gameControls').style.display = 'block';
+        document.getElementById('gameControls').style.display = 'block'; // Or grid/none depending on logic, but block/grid usually toggled by logic
+        
+        // Hide identity section in local play
+        const identitySection = document.getElementById('playerIdentitySection');
+        if (identitySection) identitySection.style.display = 'none';
+
         this.socket.emit('request_active_players');
     }
     
@@ -506,10 +532,7 @@ class MultiplayerClient {
         const messageEl = document.getElementById('statusMessage');
         if (messageEl) {
             messageEl.textContent = text;
-            // Apply class to the container, not the text element
-            if (messageEl.parentElement.classList.contains('status-container')) {
-                 messageEl.parentElement.className = `status-container ${type}`;
-            }
+            messageEl.className = `status-text-small ${type}`;
         }
     }
 }
