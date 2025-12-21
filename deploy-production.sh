@@ -9,7 +9,7 @@ echo "===================================="
 echo ""
 
 # Configuration
-PROJECT_DIR="/var/www/html/connect5.beyondcloud.technology"  # Update this path
+PROJECT_DIR="/home/github2/apps/app-connect5"  # Production server path
 NODE_PORT=3000
 PM2_APP_NAME="connect5"
 
