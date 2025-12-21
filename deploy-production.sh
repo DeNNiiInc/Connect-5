@@ -25,19 +25,13 @@ cd "$PROJECT_DIR" || { echo -e "${RED}❌ Project directory not found!${NC}"; ex
 echo -e "${GREEN}✅ In directory: $(pwd)${NC}"
 echo ""
 
-# Step 2: Pull latest code
-echo "📥 Pulling latest code from GitHub..."
-git pull origin main || { echo -e "${RED}❌ Git pull failed!${NC}"; exit 1; }
-echo -e "${GREEN}✅ Code updated${NC}"
-echo ""
-
-# Step 3: Install dependencies
+# Step 2: Install dependencies
 echo "📦 Installing dependencies..."
 npm install || { echo -e "${RED}❌ npm install failed!${NC}"; exit 1; }
 echo -e "${GREEN}✅ Dependencies installed${NC}"
 echo ""
 
-# Step 4: Check if db.config.js exists
+# Step 3: Check if db.config.js exists
 echo "🔍 Checking for db.config.js..."
 if [ ! -f "db.config.js" ]; then
     echo -e "${YELLOW}⚠️  db.config.js not found!${NC}"
@@ -65,7 +59,7 @@ else
 fi
 echo ""
 
-# Step 5: Restart Node.js server with PM2
+# Step 4: Restart Node.js server with PM2
 echo "🔄 Restarting Node.js server..."
 if pm2 list | grep -q "$PM2_APP_NAME"; then
     echo "Restarting existing PM2 process..."
@@ -79,12 +73,12 @@ pm2 save
 echo -e "${GREEN}✅ Server restarted${NC}"
 echo ""
 
-# Step 6: Show server status
+# Step 5: Show server status
 echo "📊 Server Status:"
 pm2 status
 echo ""
 
-# Step 7: Test API endpoint
+# Step 6: Test API endpoint
 echo "🧪 Testing API endpoint..."
 sleep 2  # Give server time to start
 API_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$NODE_PORT/api/db-status)
@@ -97,7 +91,7 @@ else
 fi
 echo ""
 
-# Step 8: Show recent logs
+# Step 7: Show recent logs
 echo "📋 Recent server logs:"
 pm2 logs "$PM2_APP_NAME" --lines 20 --nostream
 echo ""
