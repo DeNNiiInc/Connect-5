@@ -433,28 +433,50 @@ body {
 }
 
 /* Status Message */
-.status-message {
-  text-align: center;
+/* Merged Status Container */
+.status-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
   padding: 1rem;
   background: var(--bg-tertiary);
   border-radius: 12px;
   border: 1px solid var(--border-light);
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 1rem;
   width: 100%;
 }
 
-.status-message.success {
-  border-color: var(--success);
-  color: var(--success);
-  background: rgba(16, 185, 129, 0.1);
+.status-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-light);
 }
 
-.status-message.info {
+.status-text {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 1rem;
+  flex: 1;
+  text-align: left;
+}
+
+/* Status variants applied to the container */
+.status-container.success {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.status-container.success .status-text {
+  color: var(--success);
+}
+
+.status-container.info {
   border-color: var(--accent-secondary);
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.status-container.info .status-text {
   color: var(--accent-secondary);
-  background: rgba(56, 189, 248, 0.1);
 }
 
 /* Victory Overlay */

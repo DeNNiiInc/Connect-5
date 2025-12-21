@@ -357,7 +357,7 @@ class MultiplayerClient {
         document.getElementById('multiplayerPanel').style.display = 'none';
         document.getElementById('gameControls').style.display = 'grid';
         document.querySelector('.board-wrapper').style.display = 'flex';
-        document.getElementById('statusMessage').style.display = 'block';
+        // status container is part of gameControls now
         
         // Set board size
         document.querySelectorAll('.size-btn').forEach(btn => {
@@ -387,13 +387,15 @@ class MultiplayerClient {
         }
         
         // Update status
-        const status = document.getElementById('statusMessage');
+        const statusText = document.getElementById('statusMessage'); // This is the status-text element
+        const statusContainer = statusText.parentElement; // This is the status-container element
+
         if (this.myTurn) {
-            status.textContent = `🎮 VS ${this.opponent} | YOUR TURN - You're playing as ${this.mySymbol}`;
-            status.className = 'status-message success';
+            statusText.textContent = `🎮 VS ${this.opponent} | YOUR TURN - You're playing as ${this.mySymbol}`;
+            statusContainer.className = 'status-container success';
         } else {
-            status.textContent = `🎮 VS ${this.opponent} | Waiting for ${this.opponent} to move - You're playing as ${this.mySymbol}`;
-            status.className = 'status-message info';
+            statusText.textContent = `🎮 VS ${this.opponent} | Waiting for ${this.opponent} to move - You're playing as ${this.mySymbol}`;
+            statusContainer.className = 'status-container info';
         }
         
         console.log(`✅ Game started! You are ${this.mySymbol}, ${this.myTurn ? 'your turn' : 'waiting'}`);
@@ -504,7 +506,10 @@ class MultiplayerClient {
         const messageEl = document.getElementById('statusMessage');
         if (messageEl) {
             messageEl.textContent = text;
-            messageEl.className = `status-message ${type}`;
+            // Apply class to the container, not the text element
+            if (messageEl.parentElement.classList.contains('status-container')) {
+                 messageEl.parentElement.className = `status-container ${type}`;
+            }
         }
     }
 }
