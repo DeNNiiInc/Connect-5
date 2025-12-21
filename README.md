@@ -10,7 +10,7 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![Socket.io](https://img.shields.io/badge/Socket.io-4.0+-blue.svg)](https://socket.io/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)](https://www.mysql.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E.svg)](https://supabase.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 [Play Now](https://connect5.beyondcloud.technology/) • [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Multiplayer](#multiplayer) • [Tech Stack](#tech-stack)
@@ -70,7 +70,7 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 
 ### Prerequisites
 - **Node.js** 18+ ([Download](https://nodejs.org/))
-- **MySQL** 8.0+ ([Download](https://www.mysql.com/downloads/))
+- **Supabase Account** (Free tier available at [supabase.com](https://supabase.com/))
 - **Git** ([Download](https://git-scm.com/))
 
 ### Quick Start
@@ -83,18 +83,21 @@ cd Connect-5
 # Install dependencies
 npm install
 
-# Configure database (edit database.js with your credentials)
-# Update the following in database.js:
-# - host: 'your-mysql-host'
-# - user: 'your-database-user'
-# - password: 'your-password'
-# - database: 'your-database-name'
+# Configure database
+# 1. Create a Supabase project at https://supabase.com
+# 2. Copy db.config.example.js to db.config.js
+cp db.config.example.js db.config.js
+
+# 3. Edit db.config.js with your Supabase credentials
+# 4. Run the SQL schema in Supabase SQL Editor (see SUPABASE_SETUP.md)
 
 # Start the server
 npm start
 ```
 
 The server will start on **http://localhost:3000**
+
+For detailed setup instructions, see [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
 
 ---
 
@@ -137,8 +140,8 @@ The server will start on **http://localhost:3000**
                                                    │
                                                    ▼
                                             ┌──────────────┐
-                                            │    MySQL     │
-                                            │   Database   │
+                                            │   Supabase   │
+                                            │  PostgreSQL  │
                                             └──────────────┘
 ```
 
@@ -186,18 +189,19 @@ The server will start on **http://localhost:3000**
 - **Node.js**: JavaScript runtime
 - **Express.js**: Web application framework
 - **Socket.io**: WebSocket library for real-time bidirectional communication
-- **MySQL2**: MySQL database driver with promises
+- **Supabase Client**: PostgreSQL database client with real-time capabilities
 
 ### Database
-- **MySQL**: Relational database for persistent storage
-- **Connection Pooling**: Optimized database connections
+- **Supabase**: Managed PostgreSQL database with real-time subscriptions
+- **Row Level Security**: Built-in security policies
+- **Auto-generated APIs**: RESTful and real-time APIs
 
 ### Dependencies
 ```json
 {
   "express": "^4.18.2",
   "socket.io": "^4.6.1",
-  "mysql2": "^3.2.0",
+  "@supabase/supabase-js": "^2.39.0",
   "bad-words": "^3.0.4",
   "cors": "^2.8.5",
   "nodemon": "^2.0.22"
@@ -229,19 +233,24 @@ Connect-5/
 
 ### Database Configuration
 
-Edit `database.js`:
+Create `db.config.js` from the example:
+
+```bash
+cp db.config.example.js db.config.js
+```
+
+Edit `db.config.js`:
 
 ```javascript
-const dbConfig = {
-    host: 'your-mysql-host',      // MySQL server address
-    user: 'your-database-user',    // Database username
-    password: 'your-password',     // Database password
-    database: 'your-database-name',// Database name
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+module.exports = {
+    supabaseUrl: 'https://your-project.supabase.co',
+    supabaseAnonKey: 'your-anon-key-here',
+    supabasePassword: 'your-database-password',
+    postgresConnectionString: 'postgresql://postgres:password@...'
 };
 ```
+
+See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for detailed setup instructions.
 
 ### Server Configuration
 
@@ -250,6 +259,27 @@ Edit `server.js` to change the port:
 ```javascript
 const PORT = process.env.PORT || 3000;
 ```
+
+---
+
+## 🚀 Production Deployment
+
+For production deployment, use the automated deployment script:
+
+```bash
+sudo bash deploy.sh
+```
+
+The script will:
+- ✅ Prompt for project directory
+- ✅ Request Supabase credentials
+- ✅ Configure database connection
+- ✅ Install dependencies
+- ✅ Detect and configure web server (Nginx/Apache)
+- ✅ Start Node.js server
+- ✅ Test endpoints
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ---
 
@@ -298,8 +328,8 @@ npm start
 ## 🐛 Troubleshooting
 
 ### Connection Refused Error
-**Problem**: Cannot connect to MySQL database  
-**Solution**: Ensure MySQL is running and credentials in `database.js` are correct
+**Problem**: Cannot connect to Supabase database  
+**Solution**: Verify credentials in `db.config.js` and check Supabase dashboard
 
 ### Port Already in Use
 **Problem**: Port 3000 is already occupied  
@@ -312,6 +342,12 @@ npm start
 ### Username Already Taken
 **Problem**: Username registration fails  
 **Solution**: Try a different username or check the database for duplicates
+
+### Database Disconnected
+**Problem**: Status bar shows "Disconnected"  
+**Solution**: Check `db.config.js` credentials and Supabase project status
+
+For more troubleshooting, see [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ---
 
