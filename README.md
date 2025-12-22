@@ -57,7 +57,11 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 ### Victory Screen
 ![Victory Screen](screenshots/victory-screen.png)
 
-*(New screenshots for Surrender/Rematch UI coming soon)*
+### Surrender Feature
+![Surrender UI](screenshots/surrender_ui.png)
+
+### Rematch Feature
+![Rematch Modal](screenshots/rematch_modal.png)
 
 </div>
 
