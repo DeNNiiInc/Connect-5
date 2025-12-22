@@ -190,6 +190,10 @@ class MultiplayerClient {
         socket.on('opponent_disconnected', (data) => {
             this.showMessage(data.message + '. Waiting for reconnection...', 'warning');
         });
+
+        socket.on('opponent_reconnected', (data) => {
+            this.showMessage(data.message, 'success');
+        });
         
         // Send heartbeat every 30 seconds
         setInterval(() => {
@@ -266,6 +270,12 @@ class MultiplayerClient {
             
             // Request active players
             this.socket.emit('request_active_players');
+
+            // Check for active game restoration
+            if (data.activeGame) {
+                console.log(' restoring active game:', data.activeGame);
+                this.startMultiplayerGame(data.activeGame);
+            }
         } else {
             // Registration failed - clear saved username and show modal
             localStorage.removeItem('connect5_username');
@@ -431,6 +441,35 @@ class MultiplayerClient {
         }
         
         console.log(`✅ Game started! You are ${this.mySymbol}, ${this.myTurn ? 'your turn' : 'waiting'}`);
+
+    // Restore board state if provided (reconnection)
+    if (data.board) {
+        this.game.board = data.board;
+        // Re-render board
+        const cells = this.game.boardElement.children;
+        for (let r = 0; r < data.boardSize; r++) {
+            for (let c = 0; c < data.boardSize; c++) {
+                const symbol = data.board[r][c];
+                if (symbol) {
+                    const index = r * data.boardSize + c;
+                    const cell = cells[index];
+                    if (cell) {
+                        cell.classList.add('occupied', symbol.toLowerCase());
+                        cell.textContent = ''; // CSS handles the X/O appearance
+                    }
+                }
+            }
+        }
+        
+        // Update current player for game logic
+        if (data.currentTurnSymbol) {
+            this.game.currentPlayer = data.currentTurnSymbol;
+            const currentPlayerDisplay = document.getElementById('currentPlayer');
+            if (currentPlayerDisplay) {
+                currentPlayerDisplay.textContent = this.game.currentPlayer;
+            }
+        }
+    }
     }
     
     // Make move in multiplayer game

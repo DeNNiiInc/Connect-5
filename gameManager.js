@@ -9,7 +9,10 @@ class GameManager {
         this.challenges = new Map(); // challengeId -> challengeData
         this.activeGames = new Map(); // gameId -> gameData
         this.playerSockets = new Map(); // playerId -> socketId
+        this.activeGames = new Map(); // gameId -> gameData
+        this.playerSockets = new Map(); // playerId -> socketId
         this.rematches = new Map(); // rematchId -> rematchData
+        this.disconnectTimeouts = new Map(); // playerId -> timeoutId
     }
     
     // Validate and register player
@@ -57,17 +60,51 @@ class GameManager {
             await this.broadcastActivePlayers();
             
             return {
-                success: true,
-                player: {
-                    id: playerId,
-                    username: username,
-                    stats: {
-                        wins: player.total_wins,
-                        losses: player.total_losses,
-                        draws: player.total_draws
                     }
-                }
+                },
+                activeGame: null // Will be populated if they are reconnecting
             };
+
+            // Check if player is in an active game (reconnection)
+            for (const [gameId, game] of this.activeGames.entries()) {
+                if (game.state === 'active' && (game.player1Id === playerId || game.player2Id === playerId)) {
+                    // Restore game state for player
+                    const playerEntry = this.players.get(socket.id);
+                    if (playerEntry) {
+                        playerEntry.currentGameId = gameId;
+                    }
+                    
+                    // Clear any pending disconnect timeout
+                    if (this.disconnectTimeouts.has(playerId)) {
+                        clearTimeout(this.disconnectTimeouts.get(playerId));
+                        this.disconnectTimeouts.delete(playerId);
+                    }
+                    
+                    // Notify opponent of reconnection
+                    const opponentId = game.player1Id === playerId ? game.player2Id : game.player1Id;
+                    const opponentSocket = this.playerSockets.get(opponentId);
+                    if (opponentSocket) {
+                        this.io.to(opponentSocket).emit('opponent_reconnected', {
+                            message: `${username} reconnected!`
+                        });
+                    }
+
+                    // Add game data to response so client can restore board
+                    response.activeGame = {
+                        gameId: gameId,
+                        opponent: game.player1Id === playerId ? game.player2Username : game.player1Username,
+                        opponentId: game.player1Id === playerId ? game.player2Id : game.player1Id,
+                        yourSymbol: game.player1Id === playerId ? game.player1Symbol : game.player2Symbol,
+                        boardSize: game.boardSize,
+                        yourTurn: game.currentTurn === playerId,
+                        board: game.board,
+                        currentTurnSymbol: game.currentTurn === game.player1Id ? game.player1Symbol : game.player2Symbol
+                    };
+                    break;
+                }
+            }
+            
+            return response;
         } catch (error) {
             console.error('Error registering player:', error);
             return { success: false, error: 'Registration failed' };
@@ -95,9 +132,13 @@ class GameManager {
                 }
                 
                 // Set timeout for game abandonment
-                setTimeout(async () => {
-                    const stillDisconnected = !this.players.has(socket.id);
-                    if (stillDisconnected && game.state === 'active') {
+                const timeoutId = setTimeout(async () => {
+                    // Check if player has reconnected (is in playerSockets)
+                    // We check this.playerSockets because if they reconnected, registerPlayer 
+                    // would have put them back in there.
+                    const hasReconnected = this.playerSockets.has(player.id);
+                    
+                    if (!hasReconnected && game.state === 'active') {
                         // Award win to opponent
                         await this.db.abandonGame(player.currentGameId, opponentId);
                         
@@ -116,7 +157,11 @@ class GameManager {
                         
                         this.activeGames.delete(player.currentGameId);
                     }
+                    
+                    this.disconnectTimeouts.delete(player.id);
                 }, 30000); // 30 second grace period
+                
+                this.disconnectTimeouts.set(player.id, timeoutId);
             }
         }
         
@@ -465,6 +510,14 @@ class GameManager {
             return;
         }
 
+        if (game.state !== 'active') {
+            socket.emit('error', { message: 'Game is already ending' });
+            return;
+        }
+
+        // Set state immediately to prevent double-surrender race conditions
+        game.state = 'completed';
+
         // Determine winner (the opponent)
         const winnerId = game.player1Id === player.id ? game.player2Id : game.player1Id;
         
@@ -561,6 +614,12 @@ class GameManager {
             return;
         }
 
+        // Verify players are not already in a game
+        if (player.currentGameId) {
+            socket.emit('error', { message: 'You are already in a game' });
+            return;
+        }
+
         // Verify this player is the challenged one
         if (rematch.challenged !== player.id) {
             socket.emit('error', { message: 'Invalid rematch accept' });
@@ -572,6 +631,13 @@ class GameManager {
 
         if (!challengerSocket) {
             socket.emit('error', { message: 'Challenger no longer online' });
+            this.rematches.delete(data.rematchId);
+            return;
+        }
+
+        const challenger = this.players.get(challengerSocket);
+        if (challenger && challenger.currentGameId) {
+            socket.emit('error', { message: 'Challenger is already in a game' });
             this.rematches.delete(data.rematchId);
             return;
         }
