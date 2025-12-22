@@ -1,0 +1,19 @@
+[Unit]
+Description=Connect-5 Multiplayer Game Server
+Documentation=https://github.com/DeNNiiInc/Connect-5
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/html/app-connect5.beyondcloud.technology
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# Add any other environment variables here
+
+[Install]
+WantedBy=multi-user.target
