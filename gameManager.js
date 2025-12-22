@@ -236,6 +236,7 @@ class GameManager {
             this.io.to(challengerSocket).emit('game_started', {
                 gameId: gameId,
                 opponent: challenge.targetUsername,
+                opponentId: challenge.targetId,
                 yourSymbol: gameData.player1Symbol,
                 boardSize: challenge.boardSize,
                 yourTurn: true
@@ -245,6 +246,7 @@ class GameManager {
         this.io.to(socket.id).emit('game_started', {
             gameId: gameId,
             opponent: challenge.challengerUsername,
+            opponentId: challenge.challengerId,
             yourSymbol: gameData.player2Symbol,
             boardSize: challenge.boardSize,
             yourTurn: false
