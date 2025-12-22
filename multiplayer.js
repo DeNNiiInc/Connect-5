@@ -173,6 +173,20 @@ class MultiplayerClient {
             this.handleGameEnded(data);
         });
         
+        socket.on('rematch_request', (data) => {
+            this.handleRematchRequest(data);
+        });
+        
+        socket.on('rematch_accepted', (data) => {
+            this.startMultiplayerGame(data);
+        });
+        
+        socket.on('rematch_declined', (data) => {
+            this.showMessage(`${data.by} declined the rematch`, 'error');
+            document.getElementById('gameOverModal').classList.remove('active');
+            this.returnToLobby();
+        });
+        
         socket.on('opponent_disconnected', (data) => {
             this.showMessage(data.message + '. Waiting for reconnection...', 'warning');
         });
@@ -354,7 +368,14 @@ class MultiplayerClient {
         this.currentGameId = data.gameId;
         this.mySymbol = data.yourSymbol;
         this.opponent = data.opponent;
+        this.opponentId = data.opponentId; // Store for rematch
         this.myTurn = data.yourTurn;
+        
+        // Show surrender button
+        const surrenderBtn = document.getElementById('surrenderBtn');
+        if (surrenderBtn) {
+            surrenderBtn.style.display = 'flex';
+        }
         
         // Update UI - hide multiplayer lobby, show game board
         document.getElementById('multiplayerPanel').style.display = 'none';
@@ -495,13 +516,44 @@ class MultiplayerClient {
             document.getElementById('playerDraws').textContent = data.stats.draws;
         }
         
-        this.showMessage(message, 'success');
+        // Hide surrender button
+        const surrenderBtn = document.getElementById('surrenderBtn');
+        if (surrenderBtn) {
+            surrenderBtn.style.display = 'none';
+        }
         
-        // Show multiplayer panel again
-        setTimeout(() => {
-            document.getElementById('multiplayerPanel').style.display = 'block';
-            this.socket.emit('request_active_players');
-        }, 3000);
+        // Show game-over modal with stats
+        const modal = document.getElementById('gameOverModal');
+        const icon = document.getElementById('gameOverIcon');
+        const title = document.getElementById('gameOverTitle');
+        const subtitle = document.getElementById('gameOverMessage');
+        
+        if (modal && icon && title && subtitle) {
+            // Set icon and title based on result
+            if (data.reason === 'win' || data.reason === 'opponent_abandoned') {
+                icon.textContent = '🏆';
+                title.textContent = 'Victory!';
+                subtitle.textContent = data.reason === 'opponent_abandoned' ? 'Opponent disconnected' : 'Great game!';
+            } else if (data.reason === 'loss' || data.reason === 'surrender') {
+                icon.textContent = '😔';
+                title.textContent = 'Defeat';
+                subtitle.textContent = data.reason === 'surrender' ? 'You surrendered' : 'Better luck next time!';
+            } else {
+                icon.textContent = '🤝';
+                title.textContent = "It's a Draw!";
+                subtitle.textContent = 'Well played!';
+            }
+            
+            // Update stats in modal
+            if (data.stats) {
+                document.getElementById('gameOverWins').textContent = data.stats.wins;
+                document.getElementById('gameOverLosses').textContent = data.stats.losses;
+                document.getElementById('gameOverDraws').textContent = data.stats.draws;
+            }
+            
+            // Show modal
+            modal.classList.add('active');
+        }
     }
     
     // Handle disconnect
@@ -537,6 +589,57 @@ class MultiplayerClient {
             messageEl.textContent = text;
             messageEl.className = `status-text-small ${type}`;
         }
+    }
+    
+    // Handle rematch request from opponent
+    handleRematchRequest(data) {
+        const notification = document.createElement('div');
+        notification.className = 'challenge-notification';
+        notification.innerHTML = `
+            <div class="challenge-content">
+                <h3>Rematch Request!</h3>
+                <p><strong>${data.from}</strong> wants a rematch</p>
+                <p>Board size: ${data.boardSize}×${data.boardSize}</p>
+                <div class="challenge-actions">
+                    <button class="accept-btn" onclick="acceptRematchFromNotification('${data.rematchId}')">
+                        Accept
+                    </button>
+                    <button class="decline-btn" onclick="declineRematchFromNotification('${data.rematchId}')">
+                        Decline
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('active'), 10);
+    }
+}
+
+// Global helper functions for rematch from notifications
+function acceptRematchFromNotification(rematchId) {
+    if (window.multiplayerClient && window.multiplayerClient.socket) {
+        window.multiplayerClient.socket.emit('accept_rematch', { rematchId });
+        
+        // Hide game over modal if visible
+        const modal = document.getElementById('gameOverModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+        
+        // Remove notification
+        const notifications = document.querySelectorAll('.challenge-notification');
+        notifications.forEach(n => n.remove());
+    }
+}
+
+function declineRematchFromNotification(rematchId) {
+    if (window.multiplayerClient && window.multiplayerClient.socket) {
+        window.multiplayerClient.socket.emit('decline_rematch', { rematchId });
+        
+        // Remove notification
+        const notifications = document.querySelectorAll('.challenge-notification');
+        notifications.forEach(n => n.remove());
     }
 }
 
