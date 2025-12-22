@@ -22,31 +22,69 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 ## ✨ Features
 
 ### 🎯 Game Modes
-- **Local Play**: Play against friends on the same device.
-- **Real-Time Multiplayer**: Challenge players online with instant move synchronization.
-- **Multiple Board Sizes**: Choose from 15×15, 20×20, 25×25, or 50×50 grids.
+- **Local Play**: Play against friends on the same device with smooth turn-based gameplay
+- **Real-Time Multiplayer**: Challenge players worldwide with <50ms move synchronization
+- **Multiple Board Sizes**: Tactical variety with 15×15, 20×20, 25×25, or epic 50×50 grids
+- **Smart Matchmaking**: Player lobby with live stats (Wins/Losses/Draws) for informed challenges
 
-### 🏳️ Surrender & Rematch (NEW)
-- **Surrender Option**: Realizing you're beaten? gracefully forfeit the game with the "Surrender" button to save time.
-- **Instant Rematch**: After a game ends, challenge your opponent to a rematch instantly from the Game Over screen.
-- **Seamless Flow**: Both players are kept in sync during surrender or rematch negotiations.
+### 🌐 Multiplayer Features (NEW & ENHANCED)
 
-### 🛡️ Reliability (NEW)
-- **Smart Reconnects**: If you lose internet or refresh the page, you are **instantly placed back in your active game** with the board restored.
-- **Game State Protection**: No more abandoned games due to minor connection blips.
-- **Race Condition Handling**: Robust server-logic preventing errors during rapid interactions.
+#### Core Multiplayer
+- **Live Player Lobby**: See all online players with real-time presence indicators
+- **Challenge System**: Send and receive game invitations with instant notifications
+- **Player Statistics**: Track your performance with persistent win/loss/draw records
+- **Auto-Login**: Username persistence across sessions with 30-day cookie storage
+- **Profanity Filter**: Family-friendly environment with bad-words filtering
+
+#### 🏳️ Surrender & Rematch (NEW)
+- **Graceful Surrender**: End hopeless games early with the Surrender button
+  - Confirmation modal prevents accidental surrenders
+  - Immediate stats update (counts as loss for surrenderer, win for opponent)
+  - Both players notified instantly
+- **Instant Rematch**: Challenge the same opponent immediately after any game
+  - "Challenge Again" button in Game Over modal
+  - Full negotiation flow (accept/decline)
+  - Preserves board size preference
+  - No need to return to lobby between rematches
+
+#### 🛡️ Reliability & State Management (NEW)
+- **Smart Disconnect Handling**: 30-second grace period for network blips
+  - Automatic reconnection on internet restoration
+  - Full board state restoration (all moves preserved)
+  - Seamless resume even with new socket connection
+- **Game State Protection**: No more abandoned games from accidental refreshes
+- **Race Condition Prevention**: Server-side state locks prevent double-actions
+- **Session Recovery**: Resume active games automatically on page reload
 
 ### 🎨 Premium Design
-- **Graphing Paper Aesthetic**: Beautiful dark theme with clean lines.
-- **Smooth Animations**: Polished piece placement and victory effects.
-- **Glassmorphism UI**: Modern, translucent interface elements.
-- **Responsive Design**: Works seamlessly on desktop and mobile devices.
+- **Graphing Paper Aesthetic**: Beautiful dark theme with precision grid lines
+- **Smooth Animations**: 
+  - Polished piece placement with scale effects
+  - Victory sequence highlighting with glow effects
+  - Modal transitions with glassmorphism
+- **Modern UI Components**:
+  - Glassmorphism overlays with backdrop blur
+  - Gradient accents and hover states
+  - Responsive button designs
+- **Cross-Platform**: Flawless experience on desktop, tablet, and mobile
+
+### 🎲 Gameplay Excellence
+- **8-Direction Win Detection**: Scan horizontal, vertical, and both diagonals
+- **Turn Indicators**: Clear visual feedback showing whose turn it is
+- **Win Highlighting**: Animated display of the winning 5-piece sequence
+- **Draw Detection**: Automatic detection when board is full
+- **Move Validation**: Client and server-side validation prevents invalid moves
+- **Persistent Scoring**: All games saved to PostgreSQL with complete move history
 
 ---
 
 ## 📸 Screenshots
 
 <div align="center">
+
+### Multiplayer Lobby
+![Multiplayer Lobby](screenshots/multiplayer_lobby.png)
+*Challenge players in real-time from the lobby*
 
 ### Local Game Mode
 ![Local Game](screenshots/local-game.png)
@@ -57,11 +95,9 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 ### Victory Screen
 ![Victory Screen](screenshots/victory-screen.png)
 
-### Surrender Feature
-![Surrender UI](screenshots/surrender_ui.png)
-
-### Rematch Feature
-![Rematch Modal](screenshots/rematch_modal.png)
+### Surrender Modal
+![Surrender Modal](screenshots/surrender-modal.png)
+*Gracefully end games with the new confirmation modal*
 
 </div>
 
