@@ -1,6 +1,6 @@
 # Connect-5 Production Deployment Guide
 
-Complete guide for deploying Connect-5 to production with Supabase database.
+Complete guide for deploying Connect-5 to production with PostgreSQL database.
 
 ## Quick Deploy
 
@@ -12,7 +12,7 @@ sudo bash deploy.sh
 
 The script will:
 1. ✅ Prompt for project directory (or use current)
-2. ✅ Request Supabase credentials
+2. ✅ Request PostgreSQL credentials
 3. ✅ Create `db.config.js`
 4. ✅ Install dependencies
 5. ✅ Detect and configure web server (Nginx/Apache)
@@ -23,16 +23,17 @@ The script will:
 
 ## Prerequisites
 
-### 1. Supabase Setup
+### 1. PostgreSQL Database Setup
 
-1. Create project at [app.supabase.com](https://app.supabase.com)
-2. Run the SQL schema from [supabase-schema-complete.sql](supabase-schema-complete.sql)
-3. Get your credentials:
-   - Project URL
-   - Anon/Public API key
-   - Database password
+1. Ensure PostgreSQL server is running and accessible
+2. Create the database: `CREATE DATABASE connect5;`
+3. Run the SQL schema from [postgres-schema.sql](postgres-schema.sql):
+   ```bash
+   psql -h HOST -U postgres -d connect5 -f postgres-schema.sql
+   ```
+4. Ensure your PostgreSQL server accepts remote connections (if deploying remotely)
 
-See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for detailed instructions.
+See [README_DB_CONFIG.md](README_DB_CONFIG.md) for database configuration details.
 
 ### 2. Server Requirements
 
@@ -61,10 +62,17 @@ Create `db.config.js`:
 
 ```javascript
 module.exports = {
-    supabaseUrl: 'https://your-project.supabase.co',
-    supabaseAnonKey: 'your-anon-key',
-    supabasePassword: 'your-db-password',
-    postgresConnectionString: 'postgresql://postgres:password@db.project.supabase.co:5432/postgres'
+    HOST: 'your-postgres-host',
+    USER: 'postgres',
+    PASSWORD: 'your-database-password',
+    DB: 'connect5',
+    dialect: 'postgres',
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    }
 };
 ```
 
@@ -182,7 +190,7 @@ Should return:
   "connected": true,
   "latency": 45,
   "writeCapable": true,
-  "database": "Supabase PostgreSQL"
+  "connectionType": "PostgreSQL Direct Connection"
 }
 ```
 
@@ -216,12 +224,13 @@ Visit `https://yourdomain.com/` and verify:
 
 ### Database Disconnected
 
-**Problem**: Supabase credentials incorrect
+**Problem**: PostgreSQL credentials incorrect or server unreachable
 
 **Solution**:
-1. Check `db.config.js` has correct URL and key
-2. Verify credentials in Supabase dashboard
+1. Check `db.config.js` has correct HOST, USER, PASSWORD, and DB
+2. Verify PostgreSQL server is running: `sudo systemctl status postgresql`
 3. Check server.log: `tail -f server.log`
+4. Test direct connection: `psql -h HOST -U postgres -d connect5`
 
 ### WebSocket Connection Failed
 
@@ -239,7 +248,7 @@ Visit `https://yourdomain.com/` and verify:
 **Solution**:
 1. Check port: `netstat -tlnp | grep 3000`
 2. Check logs: `tail -f server.log`
-3. Verify Supabase credentials
+3. Verify PostgreSQL credentials in `db.config.js`
 4. Test database: `curl http://localhost:3000/api/db-status`
 
 ---
@@ -321,9 +330,10 @@ sudo systemctl restart apache2
 
 - `db.config.js` is in `.gitignore` (never commit credentials)
 - Use environment variables for sensitive data in production
-- Enable Supabase Row Level Security (RLS) policies
+- Configure PostgreSQL firewall rules to restrict access
 - Keep dependencies updated: `npm audit fix`
 - Use HTTPS only (no HTTP)
+- Use strong PostgreSQL passwords
 
 ---
 
@@ -331,7 +341,7 @@ sudo systemctl restart apache2
 
 For issues:
 1. Check this deployment guide
-2. Review [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
+2. Review [README_DB_CONFIG.md](README_DB_CONFIG.md)
 3. Check server logs
-4. Verify Supabase dashboard shows activity
+4. Verify PostgreSQL server status: `sudo systemctl status postgresql`
 5. Test local endpoint: `curl http://localhost:3000/api/db-status`

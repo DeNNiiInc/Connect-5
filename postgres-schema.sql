@@ -1,5 +1,19 @@
--- Complete Supabase Schema for Connect-5
--- Copy and paste this entire file into Supabase SQL Editor and run it
+-- ============================================
+-- Connect-5 PostgreSQL Database Schema
+-- Run this on your PostgreSQL server at:
+-- 202.171.184.108
+-- Database: connect5
+-- ============================================
+
+-- INSTRUCTIONS:
+-- 1. Connect to your PostgreSQL server
+-- 2. Ensure database 'connect5' exists (CREATE DATABASE connect5;)
+-- 3. Connect to the connect5 database
+-- 4. Run this entire script
+
+-- ============================================
+-- Create Tables
+-- ============================================
 
 -- Create players table
 CREATE TABLE IF NOT EXISTS players (
@@ -60,55 +74,44 @@ CREATE TABLE IF NOT EXISTS game_moves (
 );
 CREATE INDEX IF NOT EXISTS idx_game ON game_moves(game_id);
 
--- Enable Row Level Security (RLS)
-ALTER TABLE players ENABLE ROW LEVEL SECURITY;
-ALTER TABLE active_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE games ENABLE ROW LEVEL SECURITY;
-ALTER TABLE game_moves ENABLE ROW LEVEL SECURITY;
+-- ============================================
+-- Create Functions
+-- ============================================
 
--- Create policies to allow all operations (adjust based on your security needs)
-DROP POLICY IF EXISTS "Allow all operations on players" ON players;
-CREATE POLICY "Allow all operations on players" ON players FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Allow all operations on active_sessions" ON active_sessions;
-CREATE POLICY "Allow all operations on active_sessions" ON active_sessions FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Allow all operations on games" ON games;
-CREATE POLICY "Allow all operations on games" ON games FOR ALL USING (true);
-
-DROP POLICY IF EXISTS "Allow all operations on game_moves" ON game_moves;
-CREATE POLICY "Allow all operations on game_moves" ON game_moves FOR ALL USING (true);
-
--- Helper Functions
-CREATE OR REPLACE FUNCTION increment_wins(player_id BIGINT)
+-- Function to increment wins
+CREATE OR REPLACE FUNCTION increment_wins(player_id_param BIGINT)
 RETURNS void AS $$
 BEGIN
-    UPDATE players 
-    SET total_wins = total_wins + 1 
-    WHERE id = player_id;
+    UPDATE players SET total_wins = total_wins + 1 WHERE id = player_id_param;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION increment_losses(player_id BIGINT)
+-- Function to increment losses
+CREATE OR REPLACE FUNCTION increment_losses(player_id_param BIGINT)
 RETURNS void AS $$
 BEGIN
-    UPDATE players 
-    SET total_losses = total_losses + 1 
-    WHERE id = player_id;
+    UPDATE players SET total_losses = total_losses + 1 WHERE id = player_id_param;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION increment_draws(player_id BIGINT)
+-- Function to increment draws
+CREATE OR REPLACE FUNCTION increment_draws(player_id_param BIGINT)
 RETURNS void AS $$
 BEGIN
-    UPDATE players 
-    SET total_draws = total_draws + 1 
-    WHERE id = player_id;
+    UPDATE players SET total_draws = total_draws + 1 WHERE id = player_id_param;
 END;
 $$ LANGUAGE plpgsql;
 
--- Success message
-DO $$
-BEGIN
-    RAISE NOTICE '✅ Connect-5 database schema created successfully!';
-END $$;
+-- ============================================
+-- Verification
+-- ============================================
+
+-- Verify tables were created
+SELECT 
+    'Tables Created Successfully!' as status,
+    COUNT(*) as table_count 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name IN ('players', 'active_sessions', 'games', 'game_moves');
+
+-- Expected result: table_count = 4

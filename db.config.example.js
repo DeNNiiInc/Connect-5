@@ -1,18 +1,19 @@
 // Database Configuration File - EXAMPLE
-// Copy this file to db.config.js and fill in your actual Supabase credentials
+// Copy this file to db.config.js and fill in your actual PostgreSQL credentials
 // DO NOT commit db.config.js to git - it's in .gitignore
 
-// Supabase Configuration
-// Get these values from your Supabase project dashboard:
-// 1. Go to https://app.supabase.com
-// 2. Select your project
-// 3. Go to Project Settings → API
+// PostgreSQL Configuration
+// Update these values with your PostgreSQL database details
 module.exports = {
-    supabaseUrl: 'https://xxxxxxxxxxxxx.supabase.co', // Your Supabase project URL
-    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', // Your Supabase anon/public key
-    supabasePassword: 'your_database_password_here', // Your database password
-    
-    // Optional: Direct PostgreSQL connection string
-    // Found in Project Settings → Database → Connection String
-    postgresConnectionString: 'postgresql://postgres:your_password@db.xxxxxxxxxxxxx.supabase.co:5432/postgres'
+  HOST: "your-postgres-host", // e.g., 'localhost' or '202.171.184.108'
+  USER: "postgres", // PostgreSQL username
+  PASSWORD: "your-database-password", // Your database password
+  DB: "connect5", // Database name
+  dialect: "postgres",
+  pool: {
+    max: 5, // Maximum number of connections in pool
+    min: 0, // Minimum number of connections in pool
+    acquire: 30000, // Maximum time (ms) to try to get connection before throwing error
+    idle: 10000, // Maximum time (ms) a connection can be idle before being released
+  },
 };

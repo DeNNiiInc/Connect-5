@@ -3,7 +3,7 @@ const http = require('http');
 const socketIO = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const { initializeDatabase, db, supabase } = require('./database');
+const { initializeDatabase, db, pool } = require('./database');
 const GameManager = require('./gameManager');
 
 const app = express();
@@ -38,59 +38,49 @@ app.get('/api/db-status', async (req, res) => {
         writeCapable: false,
         timestamp: new Date().toISOString(),
         error: null,
-        // Additional diagnostic info for testing phase
-        supabaseUrl: dbConfig.supabaseUrl || 'unknown',
-        database: 'Supabase PostgreSQL',
-        connectionType: 'Supabase Client'
+        // Additional diagnostic info
+        host: dbConfig.HOST || 'unknown',
+        database: dbConfig.DB || 'unknown',
+        connectionType: 'PostgreSQL Direct Connection'
     };
 
     try {
-        console.log(`[DB-STATUS] Testing Supabase connection to ${status.supabaseUrl}...`);
+        console.log(`[DB-STATUS] Testing PostgreSQL connection to ${status.host}:5432/${status.database}...`);
         
         // Test connection with a simple query
-        const { data, error } = await supabase
-            .from('players')
-            .select('id')
-            .limit(1);
+        const result = await pool.query('SELECT id FROM players LIMIT 1');
         
         const latency = Date.now() - startTime;
         
-        if (!error || error.code === 'PGRST116') { // PGRST116 = no rows found (table exists but empty)
-            status.connected = true;
-            status.latency = latency;
-            console.log(`[DB-STATUS] ✅ Connection successful (${latency}ms)`);
+        status.connected = true;
+        status.latency = latency;
+        console.log(`[DB-STATUS] ✅ Connection successful (${latency}ms)`);
 
-            // Test write capability
-            try {
-                console.log(`[DB-STATUS] Testing write capability...`);
+        // Test write capability
+        try {
+            console.log(`[DB-STATUS] Testing write capability...`);
+            
+            // Try to insert a test record
+            const testUsername = `_test_${Date.now()}`;
+            const insertResult = await pool.query(
+                'INSERT INTO players (username) VALUES ($1) RETURNING id',
+                [testUsername]
+            );
+            
+            if (insertResult.rows.length > 0) {
+                // Clean up test record
+                await pool.query(
+                    'DELETE FROM players WHERE id = $1',
+                    [insertResult.rows[0].id]
+                );
                 
-                // Try to insert a test record
-                const testUsername = `_test_${Date.now()}`;
-                const { data: insertData, error: insertError } = await supabase
-                    .from('players')
-                    .insert([{ username: testUsername }])
-                    .select('id')
-                    .single();
-                
-                if (!insertError && insertData) {
-                    // Clean up test record
-                    await supabase
-                        .from('players')
-                        .delete()
-                        .eq('id', insertData.id);
-                    
-                    status.writeCapable = true;
-                    console.log(`[DB-STATUS] ✅ Write test successful`);
-                } else {
-                    throw insertError;
-                }
-            } catch (writeError) {
-                console.error(`[DB-STATUS] ❌ Write test failed:`, writeError.message);
-                status.writeCapable = false;
-                status.error = `Write test failed: ${writeError.message}`;
+                status.writeCapable = true;
+                console.log(`[DB-STATUS] ✅ Write test successful`);
             }
-        } else {
-            throw error;
+        } catch (writeError) {
+            console.error(`[DB-STATUS] ❌ Write test failed:`, writeError.message);
+            status.writeCapable = false;
+            status.error = `Write test failed: ${writeError.message}`;
         }
     } catch (error) {
         console.error(`[DB-STATUS] ❌ Connection failed:`, error.message);
@@ -102,11 +92,13 @@ app.get('/api/db-status', async (req, res) => {
         // Provide more detailed error messages
         let errorMessage = error.message;
         if (error.code === '42P01') {
-            errorMessage = `Table 'players' does not exist. Please run the SQL schema in Supabase SQL Editor.`;
-        } else if (error.message && error.message.includes('Invalid API key')) {
-            errorMessage = `Invalid Supabase API key. Check your db.config.js file.`;
-        } else if (error.message && error.message.includes('fetch')) {
-            errorMessage = `Cannot reach Supabase. Check your supabaseUrl in db.config.js.`;
+            errorMessage = `Table 'players' does not exist. Please run postgres-schema.sql.`;
+        } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = `Cannot connect to PostgreSQL at ${dbConfig.HOST}:5432. Check if PostgreSQL is running.`;
+        } else if (error.code === '28P01') {
+            errorMessage = `Authentication failed. Check username/password in db.config.js.`;
+        } else if (error.code === '3D000') {
+            errorMessage = `Database '${dbConfig.DB}' does not exist. Please create it first.`;
         }
         
         status.error = errorMessage;

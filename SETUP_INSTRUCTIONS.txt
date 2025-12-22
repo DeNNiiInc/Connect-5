@@ -1,0 +1,70 @@
+=================================================================
+POSTGRESQL MIGRATION - FINAL SETUP STEP
+=================================================================
+
+✅ Code migration: COMPLETE
+✅ Dependencies installed: COMPLETE  
+✅ Configuration file created: COMPLETE
+
+⚠️ DATABASE SCHEMA: NEEDS TO BE APPLIED
+
+=================================================================
+NEXT STEP: Initialize PostgreSQL Database
+=================================================================
+
+You need to run the postgres-schema.sql file on your PostgreSQL server.
+
+METHOD 1: If you have PostgreSQL client tools installed
+--------------------------------------------------------
+Run this command from PowerShell:
+
+$env:PGPASSWORD='X@gon2005!#$'; psql -h 202.171.184.108 -U postgres -d connect5 -f postgres-schema.sql
+
+METHOD 2: Using pgAdmin or another PostgreSQL GUI
+--------------------------------------------------
+1. Open pgAdmin or your PostgreSQL management tool
+2. Connect to server: 202.171.184.108
+3. Username: postgres
+4. Password: X@gon2005!#$
+5. Right-click on database 'connect5' (create if doesn't exist)
+6. Select "Query Tool"
+7. Open the file: postgres-schema.sql
+8. Execute the entire script
+9. You should see "Tables Created Successfully! table_count = 4"
+
+METHOD 3: Copy/Paste SQL
+-------------------------
+If database 'connect5' doesn't exist, first run:
+  CREATE DATABASE connect5;
+
+Then connect to connect5 and run the entire contents of:
+  postgres-schema.sql
+
+=================================================================
+VERIFY SCHEMA WAS APPLIED
+=================================================================
+
+After running the schema, verify with this query:
+
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name IN ('players', 'active_sessions', 'games', 'game_moves');
+
+Expected: 4 tables listed
+
+=================================================================
+THEN START THE SERVER
+=================================================================
+
+Once the schema is applied:
+
+npm start
+
+The server should start successfully and show:
+  ✅ Database schema verified successfully
+  🌐 Server running on port 3000
+
+Then test at: http://localhost:3000
+
+=================================================================

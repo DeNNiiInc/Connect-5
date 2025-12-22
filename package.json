@@ -19,8 +19,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.6.1",
-    "mysql2": "^3.6.5",
-    "@supabase/supabase-js": "^2.39.0",
+    "pg": "^8.11.3",
     "bad-words": "^3.0.4",
     "cors": "^2.8.5"
   },

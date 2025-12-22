@@ -6,7 +6,7 @@ set -e
 
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║         Connect-5 Production Deployment Script            ║"
-echo "║              Supabase + Node.js + Nginx/Apache            ║"
+echo "║              PostgreSQL + Node.js + Nginx/Apache          ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -48,17 +48,20 @@ cd "$PROJECT_DIR"
 echo -e "${GREEN}✅ Using project directory: $PROJECT_DIR${NC}"
 echo ""
 
-# Get Supabase credentials
-echo -e "${BLUE}🔐 Supabase Configuration${NC}"
+# Get PostgreSQL credentials
+echo -e "${BLUE}🔐 PostgreSQL Configuration${NC}"
 echo ""
-read -p "Supabase URL: " SUPABASE_URL
-read -p "Supabase Anon Key: " SUPABASE_KEY
-read -s -p "Supabase Password: " SUPABASE_PASSWORD
+read -p "PostgreSQL Host: " PG_HOST
+read -p "PostgreSQL User [postgres]: " PG_USER
+PG_USER=${PG_USER:-postgres}
+read -s -p "PostgreSQL Password: " PG_PASSWORD
 echo ""
+read -p "Database Name [connect5]: " PG_DB
+PG_DB=${PG_DB:-connect5}
 echo ""
 
-if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
-    echo -e "${RED}❌ Supabase credentials are required${NC}"
+if [ -z "$PG_HOST" ] || [ -z "$PG_PASSWORD" ]; then
+    echo -e "${RED}❌ PostgreSQL host and password are required${NC}"
     exit 1
 fi
 
@@ -66,13 +69,17 @@ fi
 echo -e "${BLUE}📝 Creating db.config.js...${NC}"
 cat > "$PROJECT_DIR/db.config.js" << EOF
 module.exports = {
-    // Supabase Configuration
-    supabaseUrl: '$SUPABASE_URL',
-    supabaseAnonKey: '$SUPABASE_KEY',
-    supabasePassword: '$SUPABASE_PASSWORD',
-    
-    // PostgreSQL Connection String (optional, for direct connections)
-    postgresConnectionString: 'postgresql://postgres:$SUPABASE_PASSWORD@db.${SUPABASE_URL#https://}.supabase.co:5432/postgres'
+    HOST: '$PG_HOST',
+    USER: '$PG_USER',
+    PASSWORD: '$PG_PASSWORD',
+    DB: '$PG_DB',
+    dialect: 'postgres',
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    }
 };
 EOF
 echo -e "${GREEN}✅ db.config.js created${NC}"
@@ -240,7 +247,7 @@ echo "║                  Deployment Complete!                      ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 echo -e "${GREEN}✅ Project Directory:${NC} $PROJECT_DIR"
-echo -e "${GREEN}✅ Database:${NC} Supabase PostgreSQL"
+echo -e "${GREEN}✅ Database:${NC} PostgreSQL"
 echo -e "${GREEN}✅ Web Server:${NC} $WEB_SERVER"
 echo -e "${GREEN}✅ Node.js:${NC} Running on port 3000"
 echo ""
@@ -255,6 +262,6 @@ echo "  Web Server: journalctl -u $WEB_SERVER -f"
 echo ""
 echo "🔧 Troubleshooting:"
 echo "  - If API returns 404, check web server proxy configuration"
-echo "  - If database disconnected, verify Supabase credentials"
+echo "  - If database disconnected, verify PostgreSQL credentials"
 echo "  - See DEPLOYMENT.md for detailed instructions"
 echo ""
