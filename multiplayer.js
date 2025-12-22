@@ -10,6 +10,9 @@ class MultiplayerClient {
         this.activePlayers = [];
         this.pendingChallenges = new Map();
         this.selectedBoardSize = 15; // Default board size for multiplayer
+        this.opponent = null; // Track opponent for rematch
+        this.opponentId = null;
+        this.lastGameResult = null;
     }
     
     

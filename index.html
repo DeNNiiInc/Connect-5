@@ -45,10 +45,19 @@
       <main class="game-container">
         <!-- Game Mode Toggle -->
         <div class="mode-selector">
-          <button class="mode-btn active" id="localModeBtn" onclick="toggleGameMode('local')">
+          <button
+            class="mode-btn active"
+            id="localModeBtn"
+            onclick="toggleGameMode('local')"
+          >
             🎮 Local Play
           </button>
-          <button class="mode-btn" id="multiplayerModeBtn" onclick="toggleGameMode('multiplayer')" disabled>
+          <button
+            class="mode-btn"
+            id="multiplayerModeBtn"
+            onclick="toggleGameMode('multiplayer')"
+            disabled
+          >
             🌐 Multiplayer
           </button>
         </div>
@@ -74,11 +83,17 @@
                   <span class="player-marker" id="currentPlayer">X</span>
                 </div>
                 <!-- Status text integrated here -->
-                <span class="status-text-small" id="statusMessage">Player X starts</span>
+                <span class="status-text-small" id="statusMessage"
+                  >Player X starts</span
+                >
               </div>
 
               <!-- Right Side: Player Identity (Multiplayer only) -->
-              <div class="status-right" id="playerIdentitySection" style="display: none;">
+              <div
+                class="status-right"
+                id="playerIdentitySection"
+                style="display: none"
+              >
                 <span class="label">You are:</span>
                 <div class="player-display">
                   <span class="player-marker" id="playerIdentity">?</span>
@@ -113,6 +128,27 @@
             </svg>
             New Game
           </button>
+
+          <button
+            class="surrender-btn"
+            id="surrenderBtn"
+            style="display: none"
+            onclick="confirmSurrender()"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            Surrender
+          </button>
         </div>
 
         <div class="board-wrapper">
@@ -120,7 +156,11 @@
         </div>
 
         <!-- Multiplayer Panel -->
-        <div id="multiplayerPanel" class="multiplayer-panel" style="display: none;">
+        <div
+          id="multiplayerPanel"
+          class="multiplayer-panel"
+          style="display: none"
+        >
           <div class="player-stats-card">
             <h3>Your Stats</h3>
             <div class="stats-grid">
@@ -191,20 +231,39 @@
           <span class="db-status-value" id="dbTimestamp">--</span>
         </div>
         <div class="db-status-item">
-          <button class="db-retry-btn" id="dbRetryBtn" onclick="window.dbStatusMonitor && window.dbStatusMonitor.retryConnection()" title="Retry SQL Connection">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          <button
+            class="db-retry-btn"
+            id="dbRetryBtn"
+            onclick="window.dbStatusMonitor && window.dbStatusMonitor.retryConnection()"
+            title="Retry SQL Connection"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+              />
             </svg>
             Retry
           </button>
         </div>
       </div>
-      
+
       <!-- Database Status Details (for testing phase) -->
-      <div class="db-status-details" id="dbStatusDetails" style="display: none;">
+      <div class="db-status-details" id="dbStatusDetails" style="display: none">
         <div class="db-details-header">
           <span class="db-details-title">🔍 SQL Connection Details</span>
-          <button class="db-details-close" onclick="document.getElementById('dbStatusDetails').style.display='none'">×</button>
+          <button
+            class="db-details-close"
+            onclick="document.getElementById('dbStatusDetails').style.display='none'"
+          >
+            ×
+          </button>
         </div>
         <div class="db-details-content" id="dbDetailsContent">
           <div class="db-detail-item">
@@ -221,14 +280,16 @@
           </div>
           <div class="db-detail-item">
             <span class="db-detail-label">Error:</span>
-            <span class="db-detail-value db-detail-error" id="detailError">None</span>
+            <span class="db-detail-value db-detail-error" id="detailError"
+              >None</span
+            >
           </div>
           <div class="db-detail-logs" id="detailLogs"></div>
         </div>
       </div>
-      
+
       <!-- SQL Error Display (Testing Phase) -->
-      <div class="sql-error-banner" id="sqlErrorBanner" style="display: none;">
+      <div class="sql-error-banner" id="sqlErrorBanner" style="display: none">
         <div class="sql-error-header">
           <span class="sql-error-icon">⚠️</span>
           <span class="sql-error-title">SQL Connection Error</span>
@@ -256,15 +317,97 @@
     <div class="modal-overlay" id="usernameModal">
       <div class="modal-content username-modal">
         <h2>Enter Your Username</h2>
-        <p class="modal-subtitle">Choose a family-friendly name (3-20 characters)</p>
-        <input type="text" id="usernameInput" placeholder="Your username" maxlength="20" />
-        <div id="usernameError" class="error-message" style="display: none;"></div>
+        <p class="modal-subtitle">
+          Choose a family-friendly name (3-20 characters)
+        </p>
+        <input
+          type="text"
+          id="usernameInput"
+          placeholder="Your username"
+          maxlength="20"
+        />
+        <div
+          id="usernameError"
+          class="error-message"
+          style="display: none"
+        ></div>
         <button class="submit-btn" onclick="submitUsername()">
           Join Multiplayer
         </button>
       </div>
     </div>
 
+    <!-- Game Over Modal -->
+    <div class="modal-overlay" id="gameOverModal">
+      <div class="modal-content game-over-modal">
+        <div class="game-over-icon" id="gameOverIcon">🎮</div>
+        <h2 id="gameOverTitle">Game Over</h2>
+        <p class="game-over-subtitle" id="gameOverMessage">
+          Thanks for playing!
+        </p>
+
+        <div class="game-over-stats">
+          <div class="stat-item">
+            <span class="stat-label">Wins:</span>
+            <span class="stat-value" id="gameOverWins">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Losses:</span>
+            <span class="stat-value" id="gameOverLosses">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Draws:</span>
+            <span class="stat-value" id="gameOverDraws">0</span>
+          </div>
+        </div>
+
+        <div class="game-over-actions">
+          <button
+            class="rematch-btn"
+            id="rematchBtn"
+            onclick="requestRematch()"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+              />
+            </svg>
+            Challenge Again
+          </button>
+          <button class="lobby-btn" onclick="returnToLobby()">
+            ← Return to Lobby
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Surrender Confirmation Modal -->
+    <div class="modal-overlay" id="surrenderModal">
+      <div class="modal-content surrender-modal">
+        <div class="surrender-icon">⚠️</div>
+        <h2>Surrender Game?</h2>
+        <p class="modal-subtitle">
+          Are you sure you want to surrender? This will count as a loss.
+        </p>
+        <div class="surrender-actions">
+          <button class="confirm-surrender-btn" onclick="executeSurrender()">
+            Yes, Surrender
+          </button>
+          <button class="cancel-surrender-btn" onclick="cancelSurrender()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="surrender-rematch.js"></script>
     <script src="storage.js"></script>
     <script src="db-status.js"></script>
     <script src="multiplayer.js"></script>
@@ -272,51 +415,51 @@
     <script>
       // Game mode toggling
       function toggleGameMode(mode) {
-        const localBtn = document.getElementById('localModeBtn');
-        const multiplayerBtn = document.getElementById('multiplayerModeBtn');
-        const gameControls = document.getElementById('gameControls');
-        const multiplayerPanel = document.getElementById('multiplayerPanel');
-        const boardWrapper = document.querySelector('.board-wrapper');
+        const localBtn = document.getElementById("localModeBtn");
+        const multiplayerBtn = document.getElementById("multiplayerModeBtn");
+        const gameControls = document.getElementById("gameControls");
+        const multiplayerPanel = document.getElementById("multiplayerPanel");
+        const boardWrapper = document.querySelector(".board-wrapper");
         // statusMessage is now inside gameControls, so we don't need to toggle it separately
 
-        if (mode === 'local') {
-          localBtn.classList.add('active');
-          multiplayerBtn.classList.remove('active');
-          gameControls.style.display = 'grid';
-          multiplayerPanel.style.display = 'none';
-          boardWrapper.style.display = 'flex';
+        if (mode === "local") {
+          localBtn.classList.add("active");
+          multiplayerBtn.classList.remove("active");
+          gameControls.style.display = "grid";
+          multiplayerPanel.style.display = "none";
+          boardWrapper.style.display = "flex";
 
           // Reset to local mode
           if (window.multiplayerClient) {
             window.multiplayerClient.isMultiplayer = false;
           }
-          
+
           // Reset turn label to default
-          const turnLabel = document.getElementById('turnLabel');
+          const turnLabel = document.getElementById("turnLabel");
           if (turnLabel) {
-            turnLabel.textContent = 'Current Turn:';
+            turnLabel.textContent = "Current Turn:";
           }
         } else {
-          localBtn.classList.remove('active');
-          multiplayerBtn.classList.add('active');
-          gameControls.style.display = 'none';
-          multiplayerPanel.style.display = 'block';
-          boardWrapper.style.display = 'none';
+          localBtn.classList.remove("active");
+          multiplayerBtn.classList.add("active");
+          gameControls.style.display = "none";
+          multiplayerPanel.style.display = "block";
+          boardWrapper.style.display = "none";
 
           // Initialize multiplayer if not already
           if (!window.multiplayerClient) {
             if (!window.game) {
-                console.log('⏳ Waiting for game to initialize...');
-                // Poll for game to be ready
-                const checkGame = setInterval(() => {
-                    if (window.game) {
-                        clearInterval(checkGame);
-                        console.log('✅ Game ready, initializing multiplayer...');
-                        window.multiplayerClient = new MultiplayerClient(window.game);
-                        window.multiplayerClient.connect();
-                    }
-                }, 100); // Check every 100ms
-                return;
+              console.log("⏳ Waiting for game to initialize...");
+              // Poll for game to be ready
+              const checkGame = setInterval(() => {
+                if (window.game) {
+                  clearInterval(checkGame);
+                  console.log("✅ Game ready, initializing multiplayer...");
+                  window.multiplayerClient = new MultiplayerClient(window.game);
+                  window.multiplayerClient.connect();
+                }
+              }, 100); // Check every 100ms
+              return;
             }
             window.multiplayerClient = new MultiplayerClient(window.game);
             window.multiplayerClient.connect();
@@ -326,59 +469,61 @@
 
       // Submit username
       function submitUsername() {
-        const input = document.getElementById('usernameInput');
-        const error = document.getElementById('usernameError');
+        const input = document.getElementById("usernameInput");
+        const error = document.getElementById("usernameError");
         const username = input.value.trim();
 
         if (!username) {
-          error.textContent = 'Please enter a username';
-          error.style.display = 'block';
+          error.textContent = "Please enter a username";
+          error.style.display = "block";
           return;
         }
 
         if (username.length < 3 || username.length > 20) {
-          error.textContent = 'Username must be 3-20 characters';
-          error.style.display = 'block';
+          error.textContent = "Username must be 3-20 characters";
+          error.style.display = "block";
           return;
         }
 
         if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-          error.textContent = 'Only letters, numbers, underscores, and hyphens allowed';
-          error.style.display = 'block';
+          error.textContent =
+            "Only letters, numbers, underscores, and hyphens allowed";
+          error.style.display = "block";
           return;
         }
 
-        error.style.display = 'none';
-        
+        error.style.display = "none";
+
         if (window.multiplayerClient) {
-            window.multiplayerClient.registerPlayer(username);
+          window.multiplayerClient.registerPlayer(username);
         } else {
-            console.error("Multiplayer client not initialized");
-            error.textContent = "Error: Multiplayer not initialized. Refresh page.";
-            error.style.display = 'block';
+          console.error("Multiplayer client not initialized");
+          error.textContent =
+            "Error: Multiplayer not initialized. Refresh page.";
+          error.style.display = "block";
         }
       }
 
       // Change username
       function changeUsername() {
         // Clear saved username from localStorage
-        localStorage.removeItem('connect5_username');
-        
+        localStorage.removeItem("connect5_username");
+
         // Show username modal
-        const modal = document.getElementById('usernameModal');
+        const modal = document.getElementById("usernameModal");
         if (modal) {
-          modal.classList.add('active');
+          modal.classList.add("active");
           // Clear the input field
-          document.getElementById('usernameInput').value = '';
+          document.getElementById("usernameInput").value = "";
         }
       }
 
       // Allow Enter key to submit username
-      document.addEventListener('DOMContentLoaded', () => {
-        const input = document.getElementById('usernameInput');
+      document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("usernameInput");
         if (input) {
-          input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+          input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
               submitUsername();
             }
           });
