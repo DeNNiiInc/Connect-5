@@ -1,0 +1,60 @@
+#!/bin/bash
+# Git Post-Merge Hook - Automatically runs after git pull
+# This fixes the issue where the server stops connecting to database after updates
+# 
+# INSTALLATION:
+# Copy this file to: .git/hooks/post-merge
+# Make it executable: chmod +x .git/hooks/post-merge
+
+echo "=========================================="
+echo "🔄 Git Pull Detected - Running Auto-Deploy"
+echo "=========================================="
+
+# Get the project directory (where this script is)
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$PROJECT_DIR"
+
+echo "📁 Project: $PROJECT_DIR"
+
+# Check if package.json or package-lock.json changed
+if git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD | grep -q 'package'; then
+    echo "📦 package.json changed - updating dependencies..."
+    npm install
+    echo "✅ Dependencies updated"
+else
+    echo "ℹ️  No dependency changes detected"
+fi
+
+# Restart the Node.js service
+echo "🔄 Restarting Node.js service..."
+
+# Try PM2 first (most common for Node.js apps)
+if command -v pm2 &> /dev/null; then
+    echo "   Using PM2..."
+    pm2 restart connect5 2>/dev/null || pm2 restart server.js 2>/dev/null || pm2 restart all
+    echo "✅ PM2 service restarted"
+    
+# Try systemd service
+elif systemctl list-units --full --all | grep -q 'connect5.service'; then
+    echo "   Using systemd..."
+    sudo systemctl restart connect5
+    echo "✅ Systemd service restarted"
+    
+# Try to find and restart the process manually
+else
+    echo "   Using process restart..."
+    # Kill existing process
+    pkill -f "node server.js"
+    sleep 2
+    
+    # Start new process in background
+    nohup node server.js > server.log 2>&1 &
+    echo "✅ Process restarted"
+fi
+
+echo ""
+echo "=========================================="
+echo "✅ Auto-Deploy Complete!"
+echo "=========================================="
+echo "Server should be reconnected to database"
+echo ""
