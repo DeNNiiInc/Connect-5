@@ -337,6 +337,42 @@ sudo systemctl restart apache2
 
 ---
 
+## 🔁 Auto-Restart & Auto-Deploy
+
+### 1. Enable Auto-Start on Boot (Systemd)
+
+To ensure your application starts automatically when the server reboots:
+
+```bash
+cd /path/to/Connect-5
+sudo bash setup-auto-start.sh
+```
+
+This script will:
+*   Install `connect5.service` to systemd
+*   Configure the service to wait for PostgreSQL
+*   Enable it to start on boot
+*   Auto-restart the app if it crashes (10s delay)
+
+### 2. Enable Auto-Deploy (Git Hooks)
+
+To automatically restart the database and server every time you `git pull`:
+
+```bash
+cd /path/to/Connect-5
+bash setup-auto-deploy.sh
+```
+
+This installs a git `post-merge` hook that:
+*   Detects when code is pulled
+*   Runs `npm install` (only if package.json changed)
+*   Restarts the `connect5` service
+*   Ensures the connection is refreshed properly
+
+This prevents "Database Disconnected" errors after updates.
+
+---
+
 ## Support
 
 For issues:

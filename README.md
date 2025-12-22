@@ -35,9 +35,11 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 ### 🌐 Multiplayer Features
 - **Player Lobby**: See all online players in real-time
 - **Challenge System**: Send and receive game invitations
+- **Surrender Option**: Forfeit games gracefully with confirmation
+- **Rematch System**: Instantly challenge the same opponent again
+- **Reliable Connections**: Auto-reconnect and state restoration
 - **Player Statistics**: Track wins, losses, and draws
 - **Auto-Login**: Username persistence across sessions
-- **Session Management**: Automatic reconnection handling
 - **Profanity Filter**: Safe and family-friendly usernames
 
 ### 🎲 Gameplay
