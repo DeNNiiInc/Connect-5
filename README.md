@@ -13,7 +13,7 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-3ECF8E.svg)](https://postgresql.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[Play Now](https://connect5.beyondcloud.technology/) • [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Multiplayer](#multiplayer) • [Tech Stack](#tech-stack)
+[Play Now](https://connect5.beyondcloud.technology/) • [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Multiplayer](#multiplayer) • [Deployment](#production-deployment)
 
 </div>
 
@@ -22,32 +22,25 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 ## ✨ Features
 
 ### 🎯 Game Modes
-- **Local Play**: Play against friends on the same device
-- **Real-Time Multiplayer**: Challenge players online with instant move synchronization
-- **Multiple Board Sizes**: Choose from 15×15, 20×20, 25×25, or 50×50 grids
+- **Local Play**: Play against friends on the same device.
+- **Real-Time Multiplayer**: Challenge players online with instant move synchronization.
+- **Multiple Board Sizes**: Choose from 15×15, 20×20, 25×25, or 50×50 grids.
+
+### 🏳️ Surrender & Rematch (NEW)
+- **Surrender Option**: Realizing you're beaten? gracefully forfeit the game with the "Surrender" button to save time.
+- **Instant Rematch**: After a game ends, challenge your opponent to a rematch instantly from the Game Over screen.
+- **Seamless Flow**: Both players are kept in sync during surrender or rematch negotiations.
+
+### 🛡️ Reliability (NEW)
+- **Smart Reconnects**: If you lose internet or refresh the page, you are **instantly placed back in your active game** with the board restored.
+- **Game State Protection**: No more abandoned games due to minor connection blips.
+- **Race Condition Handling**: Robust server-logic preventing errors during rapid interactions.
 
 ### 🎨 Premium Design
-- **Graphing Paper Aesthetic**: Beautiful dark theme with clean lines
-- **Smooth Animations**: Polished piece placement and victory effects
-- **Glassmorphism UI**: Modern, translucent interface elements
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-
-### 🌐 Multiplayer Features
-- **Player Lobby**: See all online players in real-time
-- **Challenge System**: Send and receive game invitations
-- **Surrender Option**: Forfeit games gracefully with confirmation
-- **Rematch System**: Instantly challenge the same opponent again
-- **Reliable Connections**: Auto-reconnect and state restoration
-- **Player Statistics**: Track wins, losses, and draws
-- **Auto-Login**: Username persistence across sessions
-- **Profanity Filter**: Safe and family-friendly usernames
-
-### 🎲 Gameplay
-- **8-Direction Win Detection**: Horizontal, vertical, and diagonal
-- **Turn-Based System**: Clear turn indicators
-- **Win Highlighting**: Animated winning sequence display
-- **Draw Detection**: Automatic board-full detection
-- **Score Tracking**: Persistent score tracking in local and multiplayer modes
+- **Graphing Paper Aesthetic**: Beautiful dark theme with clean lines.
+- **Smooth Animations**: Polished piece placement and victory effects.
+- **Glassmorphism UI**: Modern, translucent interface elements.
+- **Responsive Design**: Works seamlessly on desktop and mobile devices.
 
 ---
 
@@ -63,6 +56,8 @@ A beautiful, feature-rich implementation of the classic Connect-5 (Gomoku) game 
 
 ### Victory Screen
 ![Victory Screen](screenshots/victory-screen.png)
+
+*(New screenshots for Surrender/Rematch UI coming soon)*
 
 </div>
 
@@ -86,13 +81,13 @@ cd Connect-5
 npm install
 
 # Configure database
-# 1. Ensure PostgreSQL is running and create the database:
-#    CREATE DATABASE connect5;
-# 2. Copy db.config.example.js to db.config.js
+# 1. Create database: CREATE DATABASE connect5;
+# 2. Setup config:
 cp db.config.example.js db.config.js
+# 3. Edit db.config.js with your credentials
 
-# 3. Edit db.config.js with your PostgreSQL credentials
-# 4. Run the SQL schema
+# 4. Initialize Database Schema
+# (Check update-dbschema.js if psql is not available)
 psql -h HOST -U postgres -d connect5 -f postgres-schema.sql
 
 # Start the server
@@ -101,259 +96,82 @@ npm start
 
 The server will start on **http://localhost:3000**
 
-For detailed setup instructions, see [README_DB_CONFIG.md](README_DB_CONFIG.md)
-
 ---
 
 ## 🎮 Usage
 
-### Local Play
+### Multiplayer Instructions
 
-1. Open **http://localhost:3000** in your browser
-2. Click **"🎮 Local Play"**
-3. Select your preferred board size (15×15, 20×20, 25×25, or 50×50)
-4. Start playing! Player X goes first
-5. Get 5 in a row to win (horizontal, vertical, or diagonal)
+1.  Click **"🌐 Multiplayer"**.
+2.  Enter your username (3-20 characters).
+3.  **Lobby**: See online players and their stats (Wins/Losses).
+4.  **Challenge**: Click "Challenge" next to a player.
+5.  **Game On**: Once accepted, the board loads for both of you.
 
-### Multiplayer
+### In-Game Controls
 
-1. Click **"🌐 Multiplayer"**
-2. Enter your username (3-20 characters, family-friendly)
-3. Select your preferred board size
-4. Click **"Challenge"** next to any online player
-5. Wait for them to accept
-6. Game starts automatically!
-
-### Keyboard Shortcuts
-
-- **Enter**: Submit username in multiplayer mode
-- **Click**: Place piece on board
-- **Refresh**: Return to lobby after game ends
+-   **Place Piece**: Click any empty intersection.
+-   **Surrender**: Click the "Surrender" button (Game Controls area) to forfeit.
+-   **Rematch**: After the game, click "Challenge Again" to keep playing the same opponent.
 
 ---
 
-## 🌐 Multiplayer System
+## 🚀 Production Deployment
 
-### Architecture
+We support **Zero-Downtime Reliability** and **Auto-Start**.
 
-```
-┌─────────────┐         WebSocket          ┌──────────────┐
-│   Client    │◄─────────────────────────►│   Server     │
-│  (Browser)  │     Socket.io Events       │  (Node.js)   │
-└─────────────┘                             └──────┬───────┘
-                                                   │
-                                                   ▼
-                                            ┌──────────────┐
-                                            │   Supabase   │
-                                            │  PostgreSQL  │
-                                            └──────────────┘
+### 1. Automated Deployment
+Use our deployment script to setup Nginx/Apache and Node.js automatically:
+
+```bash
+sudo bash deploy.sh
 ```
 
-### Database Schema
+### 2. Auto-Start on Reboot (Systemd)
+Never worry about server restarts again. Install the systemd service:
 
-**Players Table**
-- Player information and statistics
-- Unique usernames with constraints
-- Win/Loss/Draw tracking
+```bash
+sudo bash setup-auto-start.sh
+```
+*This ensures the app starts automatically and waits for the database to be ready.*
 
-**Active Sessions Table**
-- Online player monitoring
-- Heartbeat-based connection tracking
-- Automatic cleanup of stale sessions
+### 3. Auto-Deploy (Git Hooks)
+Enable automatic updates when you `git pull`:
 
-**Games Table**
-- Game state and history
-- Player assignments (X/O)
-- Winner recording
+```bash
+bash setup-auto-deploy.sh
+```
+*This installs a hook to restart the service automatically after code changes.*
 
-**Game Moves Table**
-- Complete move history
-- Position tracking for each move
-- Replay capability support
-
-### Real-Time Features
-
-- **Instant Updates**: Move synchronization in real-time
-- **Challenge System**: Send and accept game invitations
-- **Player Presence**: Live online/offline status
-- **Disconnect Handling**: 30-second grace period for reconnection
-- **Auto-Reconnect**: Seamless session restoration
+See [DEPLOYMENT.md](DEPLOYMENT.md) for full details.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **HTML5**: Semantic markup
-- **CSS3**: Advanced styling with CSS Grid and Flexbox
-- **Vanilla JavaScript**: Pure ES6+ without frameworks
-- **Socket.io Client**: Real-time communication
+- **HTML5/CSS3**: Custom Glassmorphism design
+- **Vanilla JS**: No frameworks, pure performance
+- **Socket.io Client**: Real-time events
 
 ### Backend
-- **Node.js**: JavaScript runtime
-- **Express.js**: Web application framework
-- **Socket.io**: WebSocket library for real-time bidirectional communication
-- **Supabase Client**: PostgreSQL database client with real-time capabilities
+- **Node.js + Express**: Robust server
+- **Socket.io**: WebSocket management
+- **PostgreSQL**: Rigid data persistence (Players, Games, Moves, Sessions)
 
-### Database
-- **PostgreSQL**: Robust open-source relational database
-- **Connection Pooling**: Efficient connection management
-- **Native SQL**: Direct PostgreSQL queries for performance
-
-### Dependencies
-```json
-{
-  "express": "^4.18.2",
-  "socket.io": "^4.6.1",
-  "pg": "^8.11.3",
-  "bad-words": "^3.0.4",
-  "cors": "^2.8.5",
-  "nodemon": "^2.0.22"
-}
-```
-
----
-
-## 📁 Project Structure
-
-```
-Connect-5/
-├── 📄 index.html           # Main HTML file
-├── 🎨 styles.css           # Game styling
-├── 🎨 multiplayer-styles.css  # Multiplayer UI styles
-├── 🎮 game.js              # Game logic (local & multiplayer)
-├── 🌐 multiplayer.js       # Multiplayer client logic
-├── 🖼️ Logo.png             # BCT logo
-├── 🔧 server.js            # Express & Socket.io server
-├── 💾 database.js          # PostgreSQL connection & queries
-├── 🎯 gameManager.js       # Multiplayer game management
-├── 📦 package.json         # Dependencies
-└── 📚 README.md            # This file
-```
-
----
-
-## ⚙️ Configuration
-
-### Database Configuration
-
-Create `db.config.js` from the example:
-
-```bash
-cp db.config.example.js db.config.js
-```
-
-Edit `db.config.js`:
-
-```javascript
-module.exports = {
-    HOST: 'your-postgres-host',
-    USER: 'postgres',
-    PASSWORD: 'your-database-password',
-    DB: 'connect5',
-    dialect: 'postgres',
-    pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
-};
-```
-
-See [README_DB_CONFIG.md](README_DB_CONFIG.md) for detailed setup instructions.
-
-### Server Configuration
-
-Edit `server.js` to change the port:
-
-```javascript
-const PORT = process.env.PORT || 3000;
-```
-
----
-
-## 🚀 Production Deployment
-
-For production deployment, use the automated deployment script:
-
-```bash
-sudo bash deploy.sh
-```
-
-The script will:
-- ✅ Prompt for project directory
-- ✅ Request PostgreSQL credentials
-- ✅ Configure database connection
-- ✅ Install dependencies
-- ✅ Detect and configure web server (Nginx/Apache)
-- ✅ Start Node.js server
-- ✅ Test endpoints
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
-
----
-
-## 🎯 Game Rules
-
-### Objective
-Be the first player to get **5 pieces in a row** (horizontally, vertically, or diagonally).
-
-### How to Play
-1. Players take turns placing their pieces (X or O) on the board
-2. Click any empty cell to place your piece
-3. The game checks for wins in all 8 directions
-4. First player to connect 5 wins!
-5. If the board fills up with no winner, it's a draw
-
-### Winning Sequences
-- **Horizontal**: ●●●●●
-- **Vertical**: Stacked 5 pieces
-- **Diagonal**: 5 pieces in a diagonal line (both directions)
-
----
-
-## 🔧 Development
-
-### Running in Development Mode
-
-```bash
-# Start with auto-reload
-npm start
-
-# The server uses nodemon for automatic restarts on file changes
-```
-
-### Testing Multiplayer Locally
-
-1. Open two browser windows/tabs
-2. Navigate to `http://localhost:3000` in both
-3. Click "Multiplayer" in each window
-4. Enter different usernames
-5. Send a challenge from one window
-6. Accept it in the other window
-7. Play the game!
+### Database Schema
+- **Reliability First**: Games are stored with status (`active`, `completed`, `abandoned`).
+- **Data Integrity**: Players and Moves are linked via Foreign Keys.
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Connection Refused Error
-**Problem**: Cannot connect to PostgreSQL database  
-**Solution**: Verify credentials in `db.config.js` and check PostgreSQL is running
-
-### Port Already in Use
-**Problem**: Port 3000 is already occupied  
-**Solution**: Change the PORT in `server.js` or stop the other application
-
-### Players Not Showing in Lobby
-**Problem**: Online players list is empty  
-**Solution**: Check database connection and ensure both users are logged in
-
-### Username Already Taken
-**Problem**: Username registration fails  
-**Solution**: Try a different username or check the database for duplicates
-
-### Database Disconnected
-**Problem**: Status bar shows "Disconnected"  
-**Solution**: Check `db.config.js` credentials and PostgreSQL server status
-
-For more troubleshooting, see [DEPLOYMENT.md](DEPLOYMENT.md)
+| Issue | Solution |
+|-------|----------|
+| **Database Disconnected** | Check `db.config.js`. If on production, run `bash setup-auto-deploy.sh` to fix sync issues. |
+| **"Function not found"** | Run `node update-dbschema.js` to patch missing SQL functions. |
+| **Cannot Connect** | Ensure port 3000 is open. |
 
 ---
 
@@ -361,40 +179,14 @@ For more troubleshooting, see [DEPLOYMENT.md](DEPLOYMENT.md)
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- Inspired by the classic Gomoku game
-- Built with ❤️ by [Beyond Cloud Technology](https://www.youtube.com/@beyondcloudtechnology)
-- Special thanks to the open-source community
-
 ---
 
 ## 📧 Contact
 
-**Beyond Cloud Technology**  
+**Beyond Cloud Technology**
 - YouTube: [@beyondcloudtechnology](https://www.youtube.com/@beyondcloudtechnology)
 - Repository: [DeNNiiInc/Connect-5](https://github.com/DeNNiiInc/Connect-5)
 
----
-
 <div align="center">
-
-**Made with 💜 by Beyond Cloud Technology**
-
-⭐ Star this repository if you found it helpful!
-
+Made with 💜 by Beyond Cloud Technology
 </div>
