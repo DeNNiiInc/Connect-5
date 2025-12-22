@@ -59,7 +59,15 @@ class GameManager {
             // Broadcast updated player list
             await this.broadcastActivePlayers();
             
-            return {
+            const response = {
+                success: true,
+                player: {
+                    id: playerId,
+                    username: username,
+                    stats: {
+                        wins: player.total_wins,
+                        losses: player.total_losses,
+                        draws: player.total_draws
                     }
                 },
                 activeGame: null // Will be populated if they are reconnecting
