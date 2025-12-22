@@ -450,6 +450,218 @@ class GameManager {
             await this.db.updateHeartbeat(socket.id);
         }
     }
+
+    // Handle player surrender
+    async handleSurrender(socket, data) {
+        const player = this.players.get(socket.id);
+        if (!player) {
+            socket.emit('error', { message: 'Player not found' });
+            return;
+        }
+
+        const game = this.activeGames.get(data.gameId);
+        if (!game) {
+            socket.emit('error', { message: 'Game not found' });
+            return;
+        }
+
+        // Determine winner (the opponent)
+        const winnerId = game.player1Id === player.id ? game.player2Id : game.player1Id;
+        
+        // Update database - mark as completed with winner
+        try {
+            await this.db.abandonGame(data.gameId, winnerId);
+            
+            // Update player stats
+            await this.db.incrementLosses(player.id);
+            await this.db.incrementWins(winnerId);
+            
+            // Get updated stats
+            const loserStats = await this.db.getPlayerById(player.id);
+            const winnerStats = await this.db.getPlayerById(winnerId);
+            
+            // Find opponent socket
+            const opponentSocket = this.playerSockets.get(winnerId);
+            
+            // Notify both players
+            socket.emit('game_ended', {
+                reason: 'surrender',
+                message: 'You surrendered',
+                stats: {
+                    wins: loserStats.total_wins,
+                    losses: loserStats.total_losses,
+                    draws: loserStats.total_draws
+                }
+            });
+            
+            if (opponentSocket) {
+                this.io.to(opponentSocket).emit('game_ended', {
+                    reason: 'win',
+                    message: `${player.username} surrendered`,
+                    stats: {
+                        wins: winnerStats.total_wins,
+                        losses: winnerStats.total_losses,
+                        draws: winnerStats.total_draws
+                    }
+                });
+            }
+            
+            // Clean up
+            this.activeGames.delete(data.gameId);
+            if (this.players.has(socket.id)) this.players.get(socket.id).currentGameId = null;
+            if (opponentSocket && this.players.has(opponentSocket)) {
+                this.players.get(opponentSocket).currentGameId = null;
+            }
+            
+        } catch (error) {
+            console.error('Error handling surrender:', error);
+            socket.emit('error', { message: 'Failed to process surrender' });
+        }
+    }
+
+    // Send rematch request
+    sendRematch(socket, data) {
+        const player = this.players.get(socket.id);
+        if (!player) return;
+
+        // Find opponent's socket
+        const opponentSocket = this.playerSockets.get(data.opponentId);
+
+        if (!opponentSocket) {
+            socket.emit('error', { message: 'Opponent not online' });
+            return;
+        }
+
+        const rematchId = `rematch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        if (!this.rematches) {
+            this.rematches = new Map();
+        }
+        
+        this.rematches.set(rematchId, {
+            rematchId,
+            challenger: player.id,
+            challengerUsername: player.username,
+            challenged: data.opponentId,
+            boardSize: data.boardSize || 15,
+            timestamp: Date.now()
+        });
+
+        this.io.to(opponentSocket).emit('rematch_request', {
+            rematchId,
+            from: player.username,
+            boardSize: data.boardSize || 15
+        });
+    }
+
+    // Accept rematch
+    async acceptRematch(socket, data) {
+        const player = this.players.get(socket.id);
+        if (!player) return;
+
+        const rematch = this.rematches.get(data.rematchId);
+        if (!rematch) {
+            socket.emit('error', { message: 'Rematch request expired' });
+            return;
+        }
+
+        // Verify this player is the challenged one
+        if (rematch.challenged !== player.id) {
+            socket.emit('error', { message: 'Invalid rematch accept' });
+            return;
+        }
+
+        // Find challenger's socket
+        const challengerSocket = this.playerSockets.get(rematch.challenger);
+
+        if (!challengerSocket) {
+            socket.emit('error', { message: 'Challenger no longer online' });
+            this.rematches.delete(data.rematchId);
+            return;
+        }
+
+        // Create new game (similar to acceptChallenge logic)
+        try {
+            const gameId = await this.db.createGame(
+                rematch.challenger,
+                player.id,
+                rematch.challengerUsername,
+                player.username,
+                rematch.boardSize
+            );
+
+            // Randomly assign symbols
+            const player1IsX = Math.random() < 0.5;
+
+            const gameState = {
+                id: gameId,
+                player1Id: rematch.challenger,
+                player2Id: player.id,
+                player1Username: rematch.challengerUsername,
+                player2Username: player.username,
+                player1Symbol: player1IsX ? 'X' : 'O',
+                player2Symbol: player1IsX ? 'O' : 'X',
+                currentTurn: rematch.challenger,
+                boardSize: rematch.boardSize,
+                state: 'active',
+                board: Array(rematch.boardSize).fill(null).map(() => Array(rematch.boardSize).fill(null)),
+                moveCount: 0
+            };
+
+            this.activeGames.set(gameId, gameState);
+
+            // Update players' current game
+            const challenger = this.players.get(challengerSocket);
+            const accepter = this.players.get(socket.id);
+            if (challenger) challenger.currentGameId = gameId;
+            if (accepter) accepter.currentGameId = gameId;
+
+            // Notify both players
+            this.io.to(challengerSocket).emit('rematch_accepted', {
+                gameId: gameId,
+                opponent: player.username,
+                opponentId: player.id,
+                yourSymbol: gameState.player1Symbol,
+                yourTurn: true,
+                boardSize: rematch.boardSize
+            });
+
+            this.io.to(socket.id).emit('game_started', {
+                gameId: gameId,
+                opponent: rematch.challengerUsername,
+                opponentId: rematch.challenger,
+                yourSymbol: gameState.player2Symbol,
+                yourTurn: false,
+                boardSize: rematch.boardSize
+            });
+
+            this.rematches.delete(data.rematchId);
+
+        } catch (error) {
+            console.error('Error accepting rematch:', error);
+            socket.emit('error', { message: 'Failed to start rematch' });
+        }
+    }
+
+    // Decline rematch
+    declineRematch(socket, data) {
+        const player = this.players.get(socket.id);
+        if (!player) return;
+
+        const rematch = this.rematches.get(data.rematchId);
+        if (!rematch) return;
+
+        // Find challenger's socket
+        const challengerSocket = this.playerSockets.get(rematch.challenger);
+
+        if (challengerSocket) {
+            this.io.to(challengerSocket).emit('rematch_declined', {
+                by: player.username
+            });
+        }
+
+        this.rematches.delete(data.rematchId);
+    }
 }
 
 module.exports = GameManager;
