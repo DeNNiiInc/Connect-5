@@ -153,6 +153,24 @@ io.on('connection', (socket) => {
     socket.on('heartbeat', async () => {
         await gameManager.heartbeat(socket);
     });
+
+    // Surrender
+    socket.on('surrender', async (data) => {
+        await gameManager.handleSurrender(socket, data);
+    });
+
+    // Rematch
+    socket.on('send_rematch', (data) => {
+        gameManager.sendRematch(socket, data);
+    });
+
+    socket.on('accept_rematch', async (data) => {
+        await gameManager.acceptRematch(socket, data);
+    });
+
+    socket.on('decline_rematch', (data) => {
+        gameManager.declineRematch(socket, data);
+    });
     
     // Request active players
     socket.on('request_active_players', async () => {

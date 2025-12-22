@@ -472,10 +472,6 @@ class GameManager {
         try {
             await this.db.abandonGame(data.gameId, winnerId);
             
-            // Update player stats
-            await this.db.incrementLosses(player.id);
-            await this.db.incrementWins(winnerId);
-            
             // Get updated stats
             const loserStats = await this.db.getPlayerById(player.id);
             const winnerStats = await this.db.getPlayerById(winnerId);
