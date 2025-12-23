@@ -16,7 +16,9 @@
   --border-medium: rgba(255, 255, 255, 0.2);
   --success: #10b981;
   --danger: #ef4444;
-  --grid-line: rgba(147, 51, 234, 0.3);
+  --grid-line-opacity: 0.3;
+  --grid-dot-opacity: 0.4;
+  --grid-line: rgba(147, 51, 234, var(--grid-line-opacity));
   --grid-bg: #0f1420;
   --cell-hover: rgba(147, 51, 234, 0.1);
   --win-highlight: hsl(270, 70%, 60%);
@@ -342,7 +344,7 @@ body {
   height: 4px;
   background: var(--grid-line);
   border-radius: 50%;
-  opacity: 0.4;
+  opacity: var(--grid-dot-opacity);
 }
 
 .cell:hover:not(.occupied) {
