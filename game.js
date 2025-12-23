@@ -94,7 +94,12 @@ class Connect5Game {
     // Update UI
     const cellIndex = row * this.boardSize + col;
     const cell = this.boardElement.children[cellIndex];
-    cell.classList.add("occupied", this.currentPlayer.toLowerCase());
+    cell.classList.add("occupied", this.currentPlayer.toLowerCase(), "latest-move");
+
+    // Remove brightness boost after 2 seconds
+    setTimeout(() => {
+        if (cell) cell.classList.remove("latest-move");
+    }, 2000);
 
     // In local mode only, check for win/draw and switch player
     if (!multiplayerClient || !multiplayerClient.isMultiplayer) {

@@ -519,8 +519,13 @@ class MultiplayerClient {
         const cell = this.game.boardElement.children[cellIndex];
         
         if (cell) {
-            cell.classList.add('occupied', data.symbol.toLowerCase());
+            cell.classList.add('occupied', data.symbol.toLowerCase(), 'latest-move');
             this.game.board[data.row][data.col] = data.symbol;
+            
+            // Remove brightness boost after 2 seconds
+            setTimeout(() => {
+                if (cell) cell.classList.remove('latest-move');
+            }, 2000);
         }
         
         // It's now my turn
