@@ -1272,3 +1272,81 @@ body {
     transform: scale(1.0);
   }
 }
+
+/* Surrender Modal Styling */
+.modal-content.surrender-modal {
+  background: linear-gradient(145deg, rgba(30, 10, 10, 0.95), rgba(45, 15, 15, 0.9));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.15);
+  max-width: 400px;
+  text-align: center;
+  padding: 2.5rem;
+}
+
+.surrender-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  animation: warningPulse 2s infinite;
+}
+
+@keyframes warningPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.surrender-modal h2 {
+  color: #ef4444;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.surrender-modal .modal-subtitle {
+  color: #d1d5db;
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.surrender-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.confirm-surrender-btn {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-surrender-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+.cancel-surrender-btn {
+  background: transparent;
+  color: #9ca3af;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-surrender-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
