@@ -35,6 +35,12 @@ fi
 echo "Updating WorkingDirectory path..."
 sed -i "s|WorkingDirectory=.*|WorkingDirectory=$PROJECT_DIR|g" "$SERVICE_FILE"
 
+# Update ExecStart to match the actual Node.js path
+NODE_PATH=$(which node)
+echo "Updating Node path to: $NODE_PATH"
+sed -i "s|ExecStart=.*|ExecStart=$NODE_PATH server.js|g" "$SERVICE_FILE"
+
+
 # Copy service file
 echo "Installing systemd service..."
 cp "$SERVICE_FILE" "$SYSTEMD_PATH"
