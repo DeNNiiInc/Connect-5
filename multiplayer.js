@@ -482,6 +482,7 @@ class MultiplayerClient {
             col: col
         });
         
+        this.lastMyMove = { row, col };
         return true;
     }
     
@@ -504,6 +505,7 @@ class MultiplayerClient {
     
     // Handle opponent move
     handleOpponentMove(data) {
+        this.lastOpponentMove = { row: data.row, col: data.col };
         // Place opponent's piece on board
         this.game.currentPlayer = data.symbol;
         
@@ -568,7 +570,25 @@ class MultiplayerClient {
         const subtitle = document.getElementById('gameOverMessage');
         
         if (modal && icon && title && subtitle) {
-            // Set icon and title based on result
+            
+            // Highlight winning move if applicable
+            if (this.game && (data.reason === 'win' || data.reason === 'loss')) {
+                try {
+                   const move = data.reason === 'win' ? this.lastMyMove : this.lastOpponentMove;
+                   if (move) {
+                       // We temporarily set gameActive to true to allow checkWin to run purely for highlighting
+                       // (checkWin doesn't check gameActive, but just in case)
+                       // Actually checkWin calculates and calls highlightWinningCells
+                       this.game.checkWin(move.row, move.col);
+                   }
+                } catch (e) {
+                    console.error("Error highlighting winning move:", e);
+                }
+            }
+
+            // Delay showing the modal for 5 seconds
+            setTimeout(() => {
+                // Set icon and title based on result
             if (data.reason === 'win' || data.reason === 'opponent_abandoned') {
                 icon.textContent = '🏆';
                 title.textContent = 'Victory!';
@@ -592,6 +612,7 @@ class MultiplayerClient {
             
             // Show modal
             modal.classList.add('active');
+            }, 5000);
         }
     }
     

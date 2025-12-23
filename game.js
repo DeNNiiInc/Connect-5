@@ -67,7 +67,7 @@ class Connect5Game {
     }
 
     this.updateStatus();
-    
+
     // Set initial board class
     this.boardElement.classList.add(`turn-${this.currentPlayer.toLowerCase()}`);
   }
@@ -82,7 +82,7 @@ class Connect5Game {
       if (!multiplayerClient.myTurn) {
         return; // Not our turn in multiplayer
       }
-      
+
       // Send move to server
       const moveSent = multiplayerClient.makeMove(row, col);
       if (!moveSent) return;
@@ -103,7 +103,11 @@ class Connect5Game {
         this.gameActive = false;
         this.scores[this.currentPlayer]++;
         this.updateScores();
-        this.showVictoryOverlay();
+
+        // Delay showing visual overlay for 5 seconds to show winning lights
+        setTimeout(() => {
+          this.showVictoryOverlay();
+        }, 5000);
         return;
       }
 
@@ -218,8 +222,10 @@ class Connect5Game {
 
     // Update board class for ghost piece
     if (this.boardElement) {
-        this.boardElement.classList.remove('turn-x', 'turn-o');
-        this.boardElement.classList.add(`turn-${this.currentPlayer.toLowerCase()}`);
+      this.boardElement.classList.remove("turn-x", "turn-o");
+      this.boardElement.classList.add(
+        `turn-${this.currentPlayer.toLowerCase()}`
+      );
     }
 
     // Update the player display style
@@ -252,13 +258,13 @@ class Connect5Game {
     this.currentPlayer = "X";
     this.gameActive = true;
     this.hideVictoryOverlay();
-    
+
     // Reset turn label to default
-    const turnLabel = document.getElementById('turnLabel');
+    const turnLabel = document.getElementById("turnLabel");
     if (turnLabel) {
-      turnLabel.textContent = 'Current Turn:';
+      turnLabel.textContent = "Current Turn:";
     }
-    
+
     this.initializeBoard();
   }
 }
@@ -267,11 +273,11 @@ class Connect5Game {
 window.game = null;
 document.addEventListener("DOMContentLoaded", () => {
   window.game = new Connect5Game();
-  
+
   // Enable multiplayer button now that game is ready
-  const multiplayerBtn = document.getElementById('multiplayerModeBtn');
+  const multiplayerBtn = document.getElementById("multiplayerModeBtn");
   if (multiplayerBtn) {
     multiplayerBtn.disabled = false;
-    console.log('✅ Game initialized, multiplayer button enabled');
+    console.log("✅ Game initialized, multiplayer button enabled");
   }
 });
