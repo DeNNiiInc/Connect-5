@@ -156,34 +156,54 @@ The server will start on **http://localhost:3000**
 
 ---
 
-## 🚀 Production Deployment
+## 🚀 Production Deployment (Proxmox + TurnKey Linux)
 
-We support **Zero-Downtime Reliability** and **Auto-Start**.
+We recommend using a **Proxmox TurnKey Node.js Container** for production.
 
-### 1. Automated Deployment
-Use our deployment script to setup Nginx/Apache and Node.js automatically:
+### ✅ 1. One-Click Remote Deployment (Windows)
+Easily deploy from your local Windows machine to the remote server using the included PowerShell script.
 
-```bash
-sudo bash deploy.sh
+**Pre-requisite:** Create `deploy-config.json` in your project root (this file is ignored by git):
+```json
+{
+  "host": "172.16.69.214",
+  "username": "root",
+  "password": "YOUR_SSH_PASSWORD",
+  "remotePath": "/var/www/connect5",
+  "gitToken": "YOUR_GITHUB_TOKEN"
+}
 ```
 
-### 2. Auto-Start on Reboot (Systemd)
-Never worry about server restarts again. Install the systemd service:
-
-```bash
-sudo bash setup-auto-start.sh
+**To Deploy or Update:**
+```powershell
+.\deploy-remote.ps1
 ```
-*This ensures the app starts automatically and waits for the database to be ready.*
+*This script automatically updates code, installs dependencies, and restarts the service.*
 
-### 3. Auto-Deploy (Git Hooks)
-Enable automatic updates when you `git pull`:
+### 🔄 2. Automated Updates (Cron Job)
+The server is configured to **automatically pull updates from GitHub every 5 minutes**.
+- **No changes?** Nothing happens.
+- **New code?** The server pulls changes, runs `npm install`, and restarts the app using the `post-merge` hook.
 
+### 🛡️ 3. Cloudflare Tunnel (Secure Access)
+The application is securely exposed using a Cloudflare Tunnel, eliminating the need to open router ports.
+
+**Service Status:**
 ```bash
-bash setup-auto-deploy.sh
+systemctl status connect5
 ```
-*This installs a hook to restart the service automatically after code changes.*
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for full details.
+**Logs:**
+```bash
+journalctl -u connect5 -f
+```
+
+### 🔒 4. Security & Configuration
+- **Systemd**: The app runs as a `systemd` service (`connect5`), ensuring it auto-starts on boot.
+- **Nginx**: Configured as a reverse proxy on Port 80.
+- **Secrets**: Database credentials are stored in `db.config.js` and excluded from source control.
+
+See [PROXMOX_DEPLOY_TEMPLATE.md](PROXMOX_DEPLOY_TEMPLATE.md) for the manual setup guide.
 
 ---
 
