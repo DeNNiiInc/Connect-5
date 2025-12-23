@@ -402,6 +402,14 @@ class MultiplayerClient {
         this.game.boardSize = data.boardSize;
         this.game.currentPlayer = this.mySymbol;  // Set to our symbol
         this.game.gameActive = true;
+        
+        // Reset scores if this is a new opponent, otherwise keep them for rematch
+        if (this.currentOpponentId !== data.opponentId) {
+            this.game.scores = { X: 0, O: 0 };
+            this.game.updateScores();
+            this.currentOpponentId = data.opponentId;
+        }
+        
         this.game.initializeBoard();
         
         // Update player identity display (Right Side)
@@ -553,6 +561,21 @@ class MultiplayerClient {
             message = '🤝 It\'s a draw!';
         } else if (data.reason === 'opponent_abandoned') {
             message = '🏆 You won! Opponent disconnected';
+        }
+        
+        // Update session scores
+        if (this.game) {
+            let winner = null;
+            if (data.reason === 'win' || data.reason === 'opponent_abandoned') {
+                winner = this.mySymbol;
+            } else if (data.reason === 'loss') {
+                winner = this.mySymbol === 'X' ? 'O' : 'X';
+            }
+            
+            if (winner) {
+                this.game.scores[winner]++;
+                this.game.updateScores();
+            }
         }
         
         // Update stats
