@@ -13,7 +13,12 @@ class DatabaseStatusMonitor {
             detailsPanel: document.getElementById('dbStatusDetails'),
             errorBanner: document.getElementById('sqlErrorBanner'),
             errorMessage: document.getElementById('sqlErrorMessage'),
-            errorDetails: document.getElementById('sqlErrorDetails')
+            errorDetails: document.getElementById('sqlErrorDetails'),
+            version: {
+                container: document.getElementById('gitVersion'),
+                hash: document.getElementById('commitHash'),
+                age: document.getElementById('commitAge')
+            }
         };
         this.logs = [];
         this.maxLogs = 50;
@@ -289,10 +294,37 @@ class DatabaseStatusMonitor {
         }
     }
 
+    async fetchVersion() {
+        try {
+            const response = await fetch('/api/version');
+            const data = await response.json();
+            
+            if (data.hash && this.elements.version.container) {
+                this.elements.version.container.style.display = 'flex';
+                this.elements.version.hash.textContent = data.hash;
+                
+                // Calculate age
+                const now = Math.floor(Date.now() / 1000);
+                const diff = now - data.timestamp;
+                
+                let ageText = '';
+                if (diff < 60) ageText = 'just now';
+                else if (diff < 3600) ageText = `${Math.floor(diff / 60)}m ago`;
+                else if (diff < 86400) ageText = `${Math.floor(diff / 3600)}h ago`;
+                else ageText = `${Math.floor(diff / 86400)}d ago`;
+                
+                this.elements.version.age.textContent = ageText;
+            }
+        } catch (e) {
+            console.warn('Failed to fetch version:', e);
+        }
+    }
+
     start() {
         // Initial check
         this.addLog('Database status monitor started', 'success');
         this.checkStatus();
+        this.fetchVersion();
         
         // Set up periodic checks
         this.intervalId = setInterval(() => {

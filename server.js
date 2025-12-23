@@ -6,6 +6,19 @@ const path = require('path');
 const { initializeDatabase, db, pool } = require('./database');
 const GameManager = require('./gameManager');
 
+const { execSync } = require('child_process');
+
+// Capture Git Version Info at Startup
+let gitVersion = { hash: 'dev', timestamp: Date.now() / 1000 };
+try {
+    const hash = execSync('git log -1 --format=%h').toString().trim();
+    const timestamp = parseInt(execSync('git log -1 --format=%ct').toString().trim());
+    gitVersion = { hash, timestamp };
+    console.log(`📦 Version: ${hash} (${new Date(timestamp * 1000).toISOString()})`);
+} catch (e) {
+    console.warn('⚠️ Failed to get git version:', e.message);
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
@@ -25,6 +38,11 @@ app.use(express.static(path.join(__dirname)));
 // Serve index.html for root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Version Endpoint
+app.get('/api/version', (req, res) => {
+    res.json(gitVersion);
 });
 
 // Database health check endpoint with detailed diagnostics
