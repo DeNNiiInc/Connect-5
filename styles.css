@@ -1237,8 +1237,38 @@ body {
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
   .sql-error-details {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Last Move Highlight - Enhanced */
+.cell.latest-move {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.cell.latest-move::after {
+  animation: movePulse 2s ease-out forwards;
+  z-index: 10;
+}
+
+@keyframes movePulse {
+  0% {
+    filter: brightness(3.0) drop-shadow(0 0 15px white);
+    transform: scale(1.3);
+  }
+  15% {
+    filter: brightness(2.5) drop-shadow(0 0 10px white);
+    transform: scale(1.1);
+  }
+  50% {
+    filter: brightness(1.5) drop-shadow(0 0 5px currentColor);
+    transform: scale(1.05);
+  }
+  100% {
+    filter: brightness(1.0) drop-shadow(0 0 0 transparent);
+    transform: scale(1.0);
   }
 }
